@@ -6,34 +6,84 @@ import Header from "./components/Header"
 import {useState} from "react";
 import {TouchableOpacity, ScrollView} from 'react-native';
 
-const handleSearch = () => {
-    // Hook up your search / API call here
-};
-const results = [
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {},
-    {}
-];
+
+
+
 export default function App() {
+
+    const [results, setResults] = useState([]);
     const [fromValue, setFromValue] = useState('');
     const [toValue, setToValue] = useState('');
     const [date, setDate] = useState(new Date());
-    const [page, setPage] = useState(1);
+    const [destination,setDestination] = useState('');
+    const [origin,setOrigin] = useState('')
+    const [laterRef,setLaterRef] = useState('')
+    const [earlierRef,setEarlierRef] = useState('')
+
+    const loadLaterConnections = async () => {
+        if (laterRef != '' && laterRef != null) {
+            const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&laterRef=${encodeURIComponent(laterRef)}`;
+            const response = await fetch(url, {
+                method: 'GET'
+            });
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            const res = await response.json();
+            setResults(prevResults => [...prevResults, ...res.journeys]);
+            setEarlierRef(res.earlierRef);
+            setLaterRef(res.laterRef);
+        }
+    }
+
+  const loadEarlierConnections = async () => {
+            const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&earlierRef=${encodeURIComponent(earlierRef)}`;
+            const response = await fetch(url, {
+                method: 'GET'
+            });
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+            const res = await response.json();
+            setResults(prevResults => [...res.journeys,...prevResults]);
+            setEarlierRef(res.earlierRef);
+            setLaterRef(res.laterRef);
+    }
+
+    const handleSearch = async() => {
+        if(fromValue != ''  && toValue != ''){
+            const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
+            try {
+                const response = await fetch(url,{
+                    method: 'GET'
+                });
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+                const res = await response.json();
+                setResults(res.journeys);
+                setEarlierRef(res.earlierRef);
+                setLaterRef(res.laterRef);
+            } catch (error) {
+                console.error(error.message);
+            }
+        }
+    };
+
+
     return (
         <SafeAreaView style={styles.screen}>
             <View style={styles.headerArea}>
-                <StatusBar barStyle="light-content" backgroundColor={RED}/>
                 <Header/>
+                <StatusBar barStyle="light-content" backgroundColor={RED}/>
             </View>
 
             <View style={styles.content}>
                 <RouteInputCard
+                    setDestination={setDestination}
+                    destination={destination}
+                    setOrigin={setOrigin}
+                    origin={origin}
                     fromValue={fromValue}
                     setFromValue={setFromValue}
                     toValue={toValue}
@@ -41,14 +91,12 @@ export default function App() {
                     date={date}
                     setDate={setDate}
                 />
-
                 <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.85}>
                     <Text style={styles.searchButtonText}>Search</Text>
                 </TouchableOpacity>
-
                 <ScrollView style={styles.resultsList} contentContainerStyle={styles.resultsListContent}>
-                    {results.map((_, index) => (
-                        <JourneyCard key={index}/>
+                    {results.map((result, index) => (
+                        <JourneyCard {...result} key={index}/>
                     ))}
                 </ScrollView>
             </View>
@@ -56,13 +104,13 @@ export default function App() {
             <View style={styles.pagination}>
                 <TouchableOpacity
                     style={styles.pageButton}
-                    onPress={() => setPage((p) => Math.max(1, p - 1))}
+                    onPress={() => loadEarlierConnections()}
                 >
                     <Text style={styles.pageButtonText}>← Previous</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.pageButton}
-                    onPress={() => setPage((p) => p + 1)}
+                    onPress={() => loadLaterConnections()}
                 >
                     <Text style={styles.pageButtonText}>Next →</Text>
                 </TouchableOpacity>
@@ -159,18 +207,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1,
     },
-    lineBadge: {
-        backgroundColor: LINE_BLUE,
-        borderRadius: 6,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        zIndex: 2,
-    },
-    lineBadgeText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 13,
-    },
+
     connectorLine: {
         height: 3,
         backgroundColor: LINE_BLUE,

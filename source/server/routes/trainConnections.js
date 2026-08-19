@@ -24,10 +24,15 @@ const client = createClient.createClient(oebbProfile.profile, 'sleepy');
  *       - in: query
  *         name: earlierRef
  *         schema:
- *           type: DateTime
+ *           type: string
  *         required: false
  *       - in: query
  *         name: laterRef
+ *         schema:
+ *           type: string
+ *         required: false
+ *       - in: query
+ *         name: departure
  *         schema:
  *           type: DateTime
  *         required: false
@@ -41,22 +46,27 @@ router.get('/trainConnections', async (req, res) => {
     const arrivalStation = req.query.arrivalStation;
     const earlierRef = req.query.earlierRef;
     const laterRef = req.query.laterRef;
+    const departure = new Date(req.query.departure).setHours(new Date(req.query.departure).getHours()-2);
+
     if(earlierRef != null && laterRef != null) {
         res.status(400).send("earlierRef and laterRef cannot be used together");
     }
     let connections;
     if(earlierRef != null){
         connections = await client.journeys(departureStation, arrivalStation, {
-            results: 2,remarks: false,earlierThan:earlierRef
+            results: 3,remarks: false,earlierThan:earlierRef
         });
-    }
-    if(laterRef != null){
+    }else if(laterRef != null){
         connections = await client.journeys(departureStation, arrivalStation, {
-            results: 2,remarks: false,laterThan:laterRef
+            results: 3,remarks: false,laterThan:laterRef
+        });
+    }else if(departure != null){
+        connections = await client.journeys(departureStation, arrivalStation, {
+            results: 3,remarks: false,departure:departure
         });
     }else {
         connections = await client.journeys(departureStation, arrivalStation, {
-            results: 2,remarks: false
+            results: 3,remarks: false
         });
     }
 
@@ -71,14 +81,22 @@ router.get('/trainConnections', async (req, res) => {
         resCons.journeys.push({
             "plannedDeparture": con.legs[0].plannedDeparture,
             "departureDelay": con.legs[0].departureDelay,
+            "plannedDeparturePlatform": con.legs[0].departurePlatform,
             "plannedArrival": con.legs[con.legs.length - 1].plannedArrival,
             "arrivalDelay": con.legs[con.legs.length - 1].arrivalDelay,
             "refreshToken": con.refreshToken,
             "legs": []
         });
         for(let j = 0; j < con.legs.length; j++) {
+            let name = con.legs[j].line?.name ?? "Walk"
+            if(name === "Walk"){
+                continue;
+            }
+            if(name.endsWith(")")){
+                name = name.substring(0,name.indexOf("("));
+            }
             resCons.journeys[i].legs.push({
-            "name": con.legs[j].origin.name
+            "name": name
             });
         }
     }
@@ -114,7 +132,6 @@ router.get('/locations', async (req, res) => {
             "id": locations[locs].id
         });
     }
-
     res.json(resLocs);
 });
 /**

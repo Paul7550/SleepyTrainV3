@@ -2,48 +2,54 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function JourneyCard({
-  departureTime = '12:00',
-  arrivalTime = '14:00',
-  departurePlatformTime = '12:25',
-  arrivalPlatformTime = '14:25',
-  track = 'Gls 4',
-  fromLine = 'S4',
-  toLine = 'U4',
-  duration = '2h',
-}) {
+  plannedDeparture,
+  plannedArrival,
+  departureDelay,
+  arrivalDelay,
+  plannedDeparturePlatform,
+  legs  =[{
+    name
+  }],
+  refreshToken
+})
+{
+  const Departure = new Date(plannedDeparture)
+  const Arrival = new Date(plannedArrival)
+  const time = Math.round((Arrival-Departure)/ 1000 / 60)
+
   return (
-    <View style={styles.card}>
-      <View style={styles.topRow}>
+    <View style={JourneyCardStyles.card}>
+      <View style={JourneyCardStyles.topRow}>
         <View>
-          <View style={styles.timeRow}>
-            <Text style={styles.timeText}>{departureTime}</Text>
-            <Text style={styles.arrow}> → </Text>
-            <Text style={styles.timeText}>{arrivalTime}</Text>
+          <View style={JourneyCardStyles.timeRow}>
+            <Text style={JourneyCardStyles.timeText}>{Departure.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
+            <Text style={JourneyCardStyles.arrow}> → </Text>
+            <Text style={JourneyCardStyles.timeText}>{Arrival.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
           </View>
-          <View style={styles.subTimeRow}>
-            <Text style={styles.subTimeText}>{departurePlatformTime}</Text>
-            <Text style={styles.subTimeSpacer} />
-            <Text style={styles.subTimeText}>{arrivalPlatformTime}</Text>
+          <View style={JourneyCardStyles.subTimeRow}>
+            <Text style={JourneyCardStyles.subTimeText}>{departureDelay}</Text>
+            <Text style={JourneyCardStyles.subTimeSpacer} />
+            <Text style={JourneyCardStyles.subTimeText}>{arrivalDelay}</Text>
           </View>
         </View>
-        <Text style={styles.trackText}>{track}</Text>
+        {plannedDeparturePlatform?<Text style={JourneyCardStyles.trackText}>Gls {plannedDeparturePlatform}</Text>: <View /> }
       </View>
 
-      <View style={styles.bottomRow}>
-        <View style={styles.lineRow}>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{fromLine}</Text>
-          </View>
-          <View style={styles.connectorLine} />
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{toLine}</Text>
-          </View>
-          <View style={styles.tailLine} />
+      <View style={JourneyCardStyles.bottomRow}>
+        <View style={JourneyCardStyles.lineRow}>
+          {legs.map((line, index) => (
+              <React.Fragment key={index}>
+                <View style={JourneyCardStyles.lineBadge}>
+                  <Text style={JourneyCardStyles.lineBadgeText}>{line.name}</Text>
+                </View>
+                <View style={JourneyCardStyles.connectorLine} />
+              </React.Fragment>
+          ))}
         </View>
 
-        <View style={styles.durationRow}>
+        <View style={JourneyCardStyles.durationRow}>
           <ClockIcon />
-          <Text style={styles.durationText}>{duration}</Text>
+          <Text style={JourneyCardStyles.durationText}>{time} min</Text>
         </View>
       </View>
     </View>
@@ -52,9 +58,9 @@ export default function JourneyCard({
 
 function ClockIcon() {
   return (
-    <View style={styles.clockCircle}>
-      <View style={styles.clockHandMinute} />
-      <View style={styles.clockHandHour} />
+    <View style={JourneyCardStyles.clockCircle}>
+      <View style={JourneyCardStyles.clockHandMinute} />
+      <View style={JourneyCardStyles.clockHandHour} />
     </View>
   );
 }
@@ -64,8 +70,22 @@ const GREEN = '#2E9B4F';
 const TEXT_DARK = '#1A1A1A';
 const TEXT_GRAY = '#8A8A8E';
 const BORDER = '#E4E4E7';
+const LINE_BLUE = '#2F5FC7';
 
-const styles = StyleSheet.create({
+
+const JourneyCardStyles = StyleSheet.create({
+  lineBadge: {
+    backgroundColor: LINE_BLUE,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    zIndex: 2,
+  },
+  lineBadgeText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 13,
+  },
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,

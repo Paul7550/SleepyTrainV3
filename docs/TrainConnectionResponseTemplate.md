@@ -1,7 +1,7 @@
 **api/trainConnections**
 
 ```json
-S"header":{
+"header":{
     "departureStation": string,
     "arrivalStation": string,
     "earlierRef": Datetime,
