@@ -129,7 +129,11 @@ router.get('/locations', async (req, res) => {
     for(let locs = 0; locs < locations.length; locs++) {
         resLocs.locs.push({
             "name": locations[locs].name,
-            "id": locations[locs].id
+            "id": locations[locs].id,
+            "location": {
+                "latitude": locations[locs].location.latitude,
+                "longitude": locations[locs].location.longitude
+            }
         });
     }
     res.json(resLocs);
