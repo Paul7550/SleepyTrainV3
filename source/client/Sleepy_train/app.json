@@ -30,6 +30,9 @@
         "projectId": "5a2deafa-daf7-4b11-804f-4c69433635e6"
       }
     },
-    "owner": "phoenix7550s-organization"
+    "owner": "phoenix7550s-organization",
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }

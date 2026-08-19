@@ -61,7 +61,11 @@
     "locs": [
         {
             "name": string,
-            "id": int
+            "id": int,
+            "location":{
+                "latitude": float,
+                "longitude": float
+            }
         }
     ]
 }
