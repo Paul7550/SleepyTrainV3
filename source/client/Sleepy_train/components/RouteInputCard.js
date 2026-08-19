@@ -7,6 +7,7 @@ import {
     Platform,
     StyleSheet, Modal, FlatList, SafeAreaView
 } from 'react-native';
+import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
 const LOCATIONS_API_URL = 'http://172.20.10.2:3000/api/locations?location=';
 function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
@@ -14,6 +15,7 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
     const [stations, setStations] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [location, setLocation] = useState(null);
 
     useEffect(() => {
         if (!visible) return;
@@ -37,15 +39,53 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
             .finally(() => {
                 if (!isCancelled) setLoading(false);
             });
+        async function getCurrentLocation() {
+
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location);
+        }
+
+        getCurrentLocation();
 
         return () => {
             isCancelled = true;
         };
+
     }, [visible, query]);
 
     const filtered = stations.filter((s) =>
         s.name.toLowerCase().includes(query.toLowerCase())
     );
+    const getDistance = (stationLocation) => {
+        if (!location?.coords || !stationLocation) {
+            return null;
+        }
+        const R = 6371;
+        const dLat = (stationLocation.latitude - location.coords.latitude) * Math.PI / 180;
+        const dLon = (stationLocation.longitude - location.coords.longitude) * Math.PI / 180;
+
+        const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(location.coords.latitude * Math.PI / 180) * Math.cos(stationLocation.latitude * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    };
+    const stationsByDistance = [...filtered].sort((a, b) => {
+        const distanceA = getDistance(a.location);
+        const distanceB = getDistance(b.location);
+
+        if (distanceA === null && distanceB === null) return 0;
+        if (distanceA === null) return 1;
+        if (distanceB === null) return -1;
+
+        return distanceA - distanceB;
+    });
 
     return (
         <Modal
@@ -78,7 +118,7 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
                 {error && <Text style={styles.modalStatusText}>Error: {error}</Text>}
 
                 <FlatList
-                    data={filtered}
+                    data={stationsByDistance}
                     keyExtractor={(item) => item.id}
                     renderItem={({ item }) => (
                         <TouchableOpacity
@@ -90,6 +130,9 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
                             }}
                         >
                             <Text style={styles.modalResultText}>{item.name}</Text>
+                            <Text style={styles.modalResultLocation}>
+                                {item.location ? getDistance(item.location).toFixed(2) + " km" : 'No location available'}
+                            </Text>
                         </TouchableOpacity>
                     )}
                     ItemSeparatorComponent={() => <View style={styles.modalSeparator} />}
