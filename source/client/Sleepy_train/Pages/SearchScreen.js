@@ -2,6 +2,8 @@ import React from 'react';
 import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import JourneyCard from '../components/JourneyCard';
 import RouteInputCard from '../components/RouteInputCard';
+import { MaterialIcons } from '@expo/vector-icons';
+
 
 export default function SearchScreen({
     results,
@@ -18,6 +20,7 @@ export default function SearchScreen({
     handleSearch,
     loadEarlierConnections,
     loadLaterConnections,
+    setDetails,
 }) {
     return (
         <>
@@ -39,7 +42,7 @@ export default function SearchScreen({
                 </TouchableOpacity>
                 <ScrollView style={styles.resultsList} contentContainerStyle={styles.resultsListContent}>
                     {results.map((result, index) => (
-                        <JourneyCard {...result} key={index} />
+                        <JourneyCard {...result} setDetails={setDetails} key={index} />
                     ))}
                 </ScrollView>
             </View>
@@ -49,13 +52,15 @@ export default function SearchScreen({
                     style={styles.pageButton}
                     onPress={() => loadEarlierConnections()}
                 >
-                    <Text style={styles.pageButtonText}>← Previous</Text>
+                    <Text style={styles.pageButtonText}><MaterialIcons name={"arrow-left"} size={20} color={TEXT_DARK}/> Previous</Text>
+
                 </TouchableOpacity>
                 <TouchableOpacity
                     style={styles.pageButton}
                     onPress={() => loadLaterConnections()}
                 >
-                    <Text style={styles.pageButtonText}>Next →</Text>
+                    <Text style={styles.pageButtonText}>Next <MaterialIcons name={"arrow-right"} size={20} color={TEXT_DARK} /> </Text>
+
                 </TouchableOpacity>
             </View>
         </>
@@ -73,7 +78,6 @@ const styles = StyleSheet.create({
     },
     resultsList: {
         flex: 1,
-        paddingHorizontal: 18,
         marginTop: 18,
     },
     resultsListContent: {

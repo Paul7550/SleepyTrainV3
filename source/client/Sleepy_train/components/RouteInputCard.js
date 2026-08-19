@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {MaterialIcons} from "@expo/vector-icons";
 const LOCATIONS_API_URL = 'http://172.20.10.2:3000/api/locations?location=';
 function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
     const [query, setQuery] = useState('');
@@ -189,7 +190,7 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
                     </View>
 
                     <View style={styles.connectorRow}>
-                        <Text style={styles.arrow}>↓</Text>
+                        <MaterialIcons name={"arrow-downward"} size={20} color={TEXT_DARK} />
                     </View>
 
                     <View style={styles.fieldRow}>
@@ -213,7 +214,7 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
                     onPress={handleSwap}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <Text style={styles.swapIcon}>⇅</Text>
+                    <MaterialIcons name={"swap-vert"} size={28} color={GRAY} />
                 </TouchableOpacity>
             </View>
 

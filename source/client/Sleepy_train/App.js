@@ -3,6 +3,7 @@ import {SafeAreaView, StyleSheet, View} from 'react-native';
 import Header from "./components/Header"
 import {useState} from "react";
 import SearchScreen from "./Pages/SearchScreen";
+import TripDetailScreen from "./Pages/TripDeatailScreen";
 
 
 
@@ -17,7 +18,7 @@ export default function App() {
     const [origin,setOrigin] = useState('')
     const [laterRef,setLaterRef] = useState('')
     const [earlierRef,setEarlierRef] = useState('')
-    const [searchScreen,setSearchScreen] = useState(true)
+    const [details,setDetails] = useState('')
     const loadLaterConnections = async () => {
         if (laterRef != '' && laterRef != null) {
             const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&laterRef=${encodeURIComponent(laterRef)}`;
@@ -48,6 +49,7 @@ export default function App() {
             setLaterRef(res.laterRef);
     }
 
+
     const handleSearch = async() => {
         if(fromValue != ''  && toValue != ''){
             const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
@@ -76,7 +78,7 @@ export default function App() {
                 <StatusBar barStyle="light-content" backgroundColor={RED}/>
             </View>
 
-            {searchScreen ? (
+            {details == '' ?
                 <SearchScreen
                     results={results}
                     destination={destination}
@@ -92,8 +94,9 @@ export default function App() {
                     handleSearch={handleSearch}
                     loadEarlierConnections={loadEarlierConnections}
                     loadLaterConnections={loadLaterConnections}
+                    setDetails={setDetails}
                 />
-            ) : null}
+             : <TripDetailScreen trip={details}   />}
         </SafeAreaView>
     );
 }
