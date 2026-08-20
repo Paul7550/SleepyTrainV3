@@ -4,7 +4,6 @@ import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 
 
 export default function JourneyCard({
-  setDetails,
   plannedDeparture,
   plannedArrival,
   departureDelay,
@@ -13,7 +12,8 @@ export default function JourneyCard({
   legs  =[{
     name
   }],
-  refreshToken
+  refreshToken,
+    handelSelectTrip
 })
 {
   const Departure = new Date(plannedDeparture)
@@ -29,7 +29,7 @@ export default function JourneyCard({
       throw new Error(`Response status: ${response.status}`);
     }
     let res = await response.json();
-    setDetails(res);
+    handelSelectTrip(res);
   }
 
   return (

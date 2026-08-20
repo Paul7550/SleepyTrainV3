@@ -173,8 +173,16 @@ router.get('/refreshJourney', async (req, res) => {
             "plannedDeparturePlatform": leg.departurePlatform,
             "plannedArrival" : leg.plannedArrival,
             "arrivalDelay" : leg.arrivalDelay,
-            "plannedArrivalPlatform": leg.arrivalPlatform
-        })
+            "plannedArrivalPlatform": leg.arrivalPlatform,
+            "stops":[],
+        });
+        for(let j= 0;j<(leg.stopovers??[]).length;j++) {
+            resCon.legs[i].stops.push({
+                "plannedArrival": leg.stopovers[j].plannedArrival,
+                "arrivalDelay": leg.stopovers[j].arrivalDelay,
+                "name": leg.stopovers[j].stop.name
+            });
+        }
     }
     res.send(resCon);
 });
@@ -205,13 +213,7 @@ router.get('/getStopOvers', async (req, res) => {
             continue;
         }
         let leg = connection.journey.legs[i];
-        for(let j = 1; j<leg.stopovers.length;j++){
-            resCon.legs.push({
-                "plannedArrival": leg.stopovers[j].plannedArrival,
-                "arrivalDelay": leg.stopovers[j].arrivalDelay,
-                "name": leg.stopovers[j].stop.name
-            })
-        }
+
     }
     res.send(resCon);
 });
