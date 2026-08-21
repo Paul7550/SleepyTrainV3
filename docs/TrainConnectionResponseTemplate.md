@@ -45,7 +45,12 @@
             "plannedDeparturePlatform": int,
             "plannedArrival": Datetime,
             "arrivalDelay": int,
-            "plannedArrivalPlatform": int
+            "plannedArrivalPlatform": int,
+            "stops": [
+                "plannedArrival": Datetime,
+                "arrivalDelay": int,
+                "name": string
+        	]
         }
     ]
 }

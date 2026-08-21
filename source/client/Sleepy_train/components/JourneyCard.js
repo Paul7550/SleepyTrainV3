@@ -1,5 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+
+
 
 export default function JourneyCard({
   plannedDeparture,
@@ -10,15 +12,28 @@ export default function JourneyCard({
   legs  =[{
     name
   }],
-  refreshToken
+  refreshToken,
+    handelSelectTrip
 })
 {
   const Departure = new Date(plannedDeparture)
   const Arrival = new Date(plannedArrival)
   const time = Math.round((Arrival-Departure)/ 1000 / 60)
 
+  const loadConnectionDetails = async (key) => {
+    const url = `http://172.20.10.2:3000/api/refreshJourney/?refreshToken=${encodeURIComponent(key)}`;
+    const response = await fetch(url, {
+      method: 'GET'
+    });
+    if (!response.ok) {
+      throw new Error(`Response status: ${response.status}`);
+    }
+    let res = await response.json();
+    handelSelectTrip(res);
+  }
+
   return (
-    <View style={JourneyCardStyles.card}>
+    <TouchableOpacity style={JourneyCardStyles.card} onPress={() => loadConnectionDetails(refreshToken)}>
       <View style={JourneyCardStyles.topRow}>
         <View>
           <View style={JourneyCardStyles.timeRow}>
@@ -52,7 +67,7 @@ export default function JourneyCard({
           <Text style={JourneyCardStyles.durationText}>{time} min</Text>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -88,7 +103,6 @@ const JourneyCardStyles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
     borderWidth: 1,
     borderColor: BORDER,
     paddingVertical: 14,

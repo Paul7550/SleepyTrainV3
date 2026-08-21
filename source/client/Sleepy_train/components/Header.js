@@ -6,13 +6,13 @@ import {
     StyleSheet,
     Platform,
 } from 'react-native';
+import { MaterialIcons} from '@expo/vector-icons';
+
 export default function Header() {
     return (
         <View style={styles.header}>
             <TouchableOpacity style={styles.menuButton} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-                <View style={styles.menuLine} />
-                <View style={styles.menuLine} />
-                <View style={styles.menuLine} />
+                <MaterialIcons name={"menu"} size={28} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Sleepy Train</Text>
             <View style={styles.menuButtonSpacer} />
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     menuButton: {
         width: 28,
         justifyContent: 'space-between',
-        height: 18,
+        height: 25,
     },
     menuButtonSpacer: {
         width: 28,

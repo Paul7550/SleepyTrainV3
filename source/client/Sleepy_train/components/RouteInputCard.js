@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {MaterialIcons} from "@expo/vector-icons";
 const LOCATIONS_API_URL = 'http://172.20.10.2:3000/api/locations?location=';
 function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
     const [query, setQuery] = useState('');
@@ -74,7 +75,7 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
             Math.cos(location.coords.latitude * Math.PI / 180) * Math.cos(stationLocation.latitude * Math.PI / 180) *
             Math.sin(dLon / 2) ** 2;
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        return (R * c).toFixed(2);
     };
     const stationsByDistance = [...filtered].sort((a, b) => {
         const distanceA = getDistance(a.location);
@@ -84,7 +85,7 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
         if (distanceA === null) return 1;
         if (distanceB === null) return -1;
 
-        return distanceA - distanceB;
+        return (distanceA - distanceB).toFixed(2);
     });
 
     return (
@@ -131,7 +132,7 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
                         >
                             <Text style={styles.modalResultText}>{item.name}</Text>
                             <Text style={styles.modalResultLocation}>
-                                {item.location ? getDistance(item.location).toFixed(2) + " km" : 'No location available'}
+                                {item.location ?  getDistance(item.location)+ " km" : 'No location available'}
                             </Text>
                         </TouchableOpacity>
                     )}
@@ -189,7 +190,7 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
                     </View>
 
                     <View style={styles.connectorRow}>
-                        <Text style={styles.arrow}>↓</Text>
+                        <MaterialIcons name={"arrow-downward"} size={20} color={TEXT_DARK} />
                     </View>
 
                     <View style={styles.fieldRow}>
@@ -213,7 +214,7 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
                     onPress={handleSwap}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 >
-                    <Text style={styles.swapIcon}>⇅</Text>
+                    <MaterialIcons name={"swap-vert"} size={28} color={GRAY} />
                 </TouchableOpacity>
             </View>
 
@@ -222,7 +223,7 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
                 activeOpacity={0.7}
                 onPress={() => setShowPicker(true)}
             >
-                <Text style={date ? styles.valueText : styles.valuePlaceholder}>{formattedValue}</Text>
+                <Text style={date ? styles.valueText : styles.valuePlaceholder}>Dep. {formattedValue}</Text>
             </TouchableOpacity>
 
             {showPicker && (
@@ -329,7 +330,7 @@ const styles = StyleSheet.create({
     /* Route input */
     inputContainer: {
         paddingHorizontal: 18,
-        paddingTop: 18,
+        paddingTop: 9,
     },
     row: {
         flexDirection: 'row',
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
     },
     connectorRow: {
         flexDirection: 'row',
-        height: 24,
+        height: 16,
     },
     connectorSpacer: {
         width: 13,
@@ -403,13 +404,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderWidth: 1,
-        borderColor: BORDER,
-        borderRadius: 14,
-        paddingHorizontal: 16,
         paddingVertical: 12,
-        marginTop: 12,
-        marginLeft: 36,
         maxWidth: 200,
     },
     valueText: {
