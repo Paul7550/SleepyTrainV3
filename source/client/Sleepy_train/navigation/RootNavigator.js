@@ -11,14 +11,14 @@ const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
     return (
-        <SafeAreaView style={styles.screen}>
+        <View style={styles.screen}>
             <StatusBar barStyle="light-content" backgroundColor={RED}/>
         <Stack.Navigator screenOptions={{ header:()=> <Header/>}}>
             <Stack.Screen name="Search" component={SearchScreen} />
             <Stack.Screen name="TripDetail" component={TripDetailScreen} />
             <Stack.Screen name={"Saved"} component={SavedTripsScreen} />
         </Stack.Navigator>
-        </SafeAreaView>
+        </View>
     );
 }
 const RED = '#E8352B';

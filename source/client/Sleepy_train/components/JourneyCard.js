@@ -13,7 +13,7 @@ export default function JourneyCard({
   legs  =[{
     name
   }],
-  refreshToken,handelSelectTrip
+  refreshToken, handelSelectTrip
 })
 {
   const Departure = new Date(plannedDeparture)

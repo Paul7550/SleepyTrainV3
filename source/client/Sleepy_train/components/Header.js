@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         paddingHorizontal: 18,
-        paddingTop: Platform.OS === 'android' ? 18 : 8,
+        paddingTop: Platform.OS === 'android' ? 18 : 40,
         paddingBottom: 18,
     },
     menuButton: {
