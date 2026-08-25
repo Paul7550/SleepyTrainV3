@@ -5,20 +5,18 @@ import { StyleSheet, View} from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {StatusBar} from "expo-status-bar";
 import Header from "../components/Header";
+import SavedTripsScreen from "../screens/SavedTripsScreen";
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
     return (
         <SafeAreaView style={styles.screen}>
-            <View style={styles.headerArea}>
-            <Header/>
             <StatusBar barStyle="light-content" backgroundColor={RED}/>
-        </View>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-
+        <Stack.Navigator screenOptions={{ header:()=> <Header/>}}>
             <Stack.Screen name="Search" component={SearchScreen} />
             <Stack.Screen name="TripDetail" component={TripDetailScreen} />
+            <Stack.Screen name={"Saved"} component={SavedTripsScreen} />
         </Stack.Navigator>
         </SafeAreaView>
     );

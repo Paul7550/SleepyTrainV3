@@ -76,19 +76,24 @@
 }
 ```
 
-**api/getStopOvers**
+**api/savedConnection**
 
 ```json
-"header": {
-    "refreshToken": string
+"header":{
+    "refreshTokens":[]
 }
-"body": {
-    "legs":	[
-        "stops": [
+"body":{
+    journeys:[
+        {
+            "refreshToken":	string,
+        	"originName": string,
+            "destinationName": string,
+            "plannedDeparture": DateTime,
+            "departureDelay": int,
+            "plannedDeparturePlatform": int,
             "plannedArrival": Datetime,
             "arrivalDelay": int,
-            "name": string
-        ]
+        }
     ]
 }
 ```

@@ -228,10 +228,10 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
 
             {showPicker && (
                 <DateTimePicker
-                    value={date || new Date()}
+                    value={date}
                     mode="datetime"
                     display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                    onValueChange={handleDateChange}
+                    onChange={handleDateChange}
                 />
             )}
 

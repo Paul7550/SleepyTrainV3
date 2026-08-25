@@ -18,6 +18,7 @@ export default function SearchScreen({navigation}) {
     const [earlierRef,setEarlierRef] = useState('')
     const [details,setDetails] = useState('')
 
+
     const handleSearch = async() => {
         if(fromValue != ''  && toValue != ''){
             const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
@@ -65,8 +66,8 @@ export default function SearchScreen({navigation}) {
         setEarlierRef(res.earlierRef);
         setLaterRef(res.laterRef);
     }
-    const handleSelectTrip = (trip) => {
-        navigation.navigate('TripDetail', { trip });
+    const handleSelectTrip = (trip,token) => {
+        navigation.navigate('TripDetail', { trip,token });
     };
 
 
