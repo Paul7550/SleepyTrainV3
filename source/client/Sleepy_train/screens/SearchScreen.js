@@ -1,10 +1,22 @@
-import React, {useState} from 'react';
-import {SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+    ActivityIndicator,
+    LayoutAnimation,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
+} from 'react-native';
 import JourneyCard from '../components/JourneyCard';
 import RouteInputCard from '../components/RouteInputCard';
-import { MaterialIcons } from '@expo/vector-icons';
+import {MaterialIcons} from '@expo/vector-icons';
+import {getLatestConnections, saveLatestConnections} from "../Saver";
 import Header from "../components/Header";
 import {StatusBar} from "expo-status-bar";
+import LatestConnections from "../components/LatestConnections";
+import ConnectionCard from "../components/LatestConnections";
 
 
 export default function SearchScreen({navigation}) {
@@ -12,17 +24,32 @@ export default function SearchScreen({navigation}) {
     const [fromValue, setFromValue] = useState('');
     const [toValue, setToValue] = useState('');
     const [date, setDate] = useState(new Date());
-    const [destination,setDestination] = useState('');
-    const [origin,setOrigin] = useState('')
-    const [laterRef,setLaterRef] = useState('')
-    const [earlierRef,setEarlierRef] = useState('')
-    const [details,setDetails] = useState('')
+    const [destination, setDestination] = useState('');
+    const [origin, setOrigin] = useState('')
+    const [laterRef, setLaterRef] = useState('')
+    const [earlierRef, setEarlierRef] = useState('')
+    const [latestConnections, setLatestConnections] = useState([])
+    const [loading, setLoading] = useState(false)
 
-    const handleSearch = async() => {
-        if(fromValue != ''  && toValue != ''){
+    useEffect(() => {
+        const getLatestCon = async () => {
+            setLatestConnections(await getLatestConnections());
+        }
+        getLatestCon()
+    }, [])
+
+    const loadLatestConnections = (from,origin,to,destination)=>{
+        setOrigin(origin)
+        setDestination(destination)
+        setFromValue(from)
+        setToValue(to)
+    }
+    const handleSearch = async () => {
+        if (fromValue != '' && toValue != '') {
+            setLoading(true)
             const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
             try {
-                const response = await fetch(url,{
+                const response = await fetch(url, {
                     method: 'GET'
                 });
                 if (!response.ok) {
@@ -32,6 +59,8 @@ export default function SearchScreen({navigation}) {
                 setResults(res.journeys);
                 setEarlierRef(res.earlierRef);
                 setLaterRef(res.laterRef);
+                saveLatestConnections(fromValue,origin,toValue,destination)
+                setLoading(false)
             } catch (error) {
                 console.error(error.message);
             }
@@ -61,17 +90,17 @@ export default function SearchScreen({navigation}) {
             throw new Error(`Response status: ${response.status}`);
         }
         const res = await response.json();
-        setResults(prevResults => [...res.journeys,...prevResults]);
+        setResults(prevResults => [...res.journeys, ...prevResults]);
         setEarlierRef(res.earlierRef);
         setLaterRef(res.laterRef);
     }
-    const handleSelectTrip = (trip) => {
-        navigation.navigate('TripDetail', { trip });
+    const handleSelectTrip = (trip, token) => {
+        navigation.navigate('TripDetail', {trip, token});
     };
 
 
     return (
-            <>
+        <>
             <View style={styles.content}>
                 <RouteInputCard
                     setDestination={setDestination}
@@ -88,29 +117,43 @@ export default function SearchScreen({navigation}) {
                 <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.85}>
                     <Text style={styles.searchButtonText}>Search</Text>
                 </TouchableOpacity>
-                <ScrollView style={styles.resultsList} contentContainerStyle={styles.resultsListContent}>
-                    {results.map((result, index) => (
-                        <JourneyCard {...result} handelSelectTrip={handleSelectTrip} key={index} />
-                    ))}
-                </ScrollView>
+                {loading ?
+                    <View style={styles.centerContent}>
+                        <ActivityIndicator size="large" color="#E8352B"/>
+                    </View> :
+                    <ScrollView style={styles.resultsList} contentContainerStyle={styles.resultsListContent}>
+                        {results.length> 0 ?
+                            results.map((result, index) => (
+                            <JourneyCard {...result} handelSelectTrip={handleSelectTrip} key={index}/>
+                            ))
+                            :
+                            latestConnections.map((c,index)=>(
+                                <ConnectionCard loadLatestConnections={loadLatestConnections} key={index} from={c.from} to={c.to} destination={c.destination} origin={c.origin}></ConnectionCard>
+                            ))
+                        }
+                    </ScrollView>
+                }
             </View>
+            {results.length > 0?
+                <View style={styles.pagination}>
+                    <TouchableOpacity
+                        style={styles.pageButton}
+                        onPress={() => loadEarlierConnections()}
+                    >
+                        <Text style={styles.pageButtonText}><MaterialIcons name={"arrow-left"} size={20}
+                                                                           color={TEXT_DARK}/> Previous</Text>
 
-            <View style={styles.pagination}>
-                <TouchableOpacity
-                    style={styles.pageButton}
-                    onPress={() => loadEarlierConnections()}
-                >
-                    <Text style={styles.pageButtonText}><MaterialIcons name={"arrow-left"} size={20} color={TEXT_DARK}/> Previous</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={styles.pageButton}
+                        onPress={() => loadLaterConnections()}
+                    >
+                        <Text style={styles.pageButtonText}>Next <MaterialIcons name={"arrow-right"} size={20}
+                                                                                color={TEXT_DARK}/> </Text>
 
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={styles.pageButton}
-                    onPress={() => loadLaterConnections()}
-                >
-                    <Text style={styles.pageButtonText}>Next <MaterialIcons name={"arrow-right"} size={20} color={TEXT_DARK} /> </Text>
-
-                </TouchableOpacity>
-            </View>
+                    </TouchableOpacity>
+                </View>:null
+            }
         </>
     );
 }
@@ -120,6 +163,12 @@ const BORDER = '#E4E4E7';
 const TEXT_DARK = '#1A1A1A';
 
 const styles = StyleSheet.create({
+    centerContent: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 40,
+    },
     screen: {
         flex: 1,
         backgroundColor: '#FFFFFF',
@@ -159,6 +208,7 @@ const styles = StyleSheet.create({
         paddingTop: 12,
         borderTopWidth: 1,
         borderTopColor: BORDER,
+        paddingBottom: 20
     },
     pageButton: {
         paddingVertical: 6,

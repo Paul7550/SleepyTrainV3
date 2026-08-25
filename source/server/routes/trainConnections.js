@@ -4,6 +4,7 @@ const express = require('express');
 const router = express.Router();
 const createClient =  require('hafas-client');
 const oebbProfile =  require('hafas-client/p/oebb/index.js');
+const {route} = require("express/lib/application");
 const client = createClient.createClient(oebbProfile.profile, 'sleepy');
 
 /**
@@ -146,7 +147,7 @@ router.get('/locations', async (req, res) => {
  *       - in: query
  *         name: refreshToken
  *         schema:
- *           type: string
+ *           type: array
  *         required: true
  *         description: The refresh token for the journey
  *     summary: Returns a TrainConnection
@@ -162,7 +163,10 @@ router.get('/refreshJourney', async (req, res) => {
     }
     for(let i = 0;i<connection.journey.legs.length;i++){
         let leg = connection.journey.legs[i]
-        const lineName = leg.line?.name ?? "Walk";
+        let lineName = leg.line?.name ?? "Walk";
+        if(lineName.endsWith(")")){
+            lineName = lineName.substring(0,lineName.indexOf("("));
+        }
         resCon.legs.push({
             "name": lineName,
             "direction": leg.direction,
@@ -176,7 +180,7 @@ router.get('/refreshJourney', async (req, res) => {
             "plannedArrivalPlatform": leg.arrivalPlatform,
             "stops":[],
         });
-        for(let j= 0;j<(leg.stopovers??[]).length;j++) {
+        for(let j= 1;j<(leg.stopovers??[]).length-1;j++) {
             resCon.legs[i].stops.push({
                 "plannedArrival": leg.stopovers[j].plannedArrival,
                 "arrivalDelay": leg.stopovers[j].arrivalDelay,
@@ -188,33 +192,47 @@ router.get('/refreshJourney', async (req, res) => {
 });
 /**
  * @swagger
- * /api/getStopOvers:
+ * /api/savedConnection:
  *   get:
  *     parameters:
  *       - in: query
- *         name: refreshToken
+ *         name: refreshTokens
  *         schema:
  *           type: string
  *         required: true
- *         description: The refresh token for the journey
- *     summary: Returns the stopOvers
- *     description: Returns a connection
+ *         description: The refresh tokens for the journeys
+ *     summary: Returns TrainConnections
+ *     description: Returns connections
  *     responses:
  *       200:
  *         description: A connection
  */
-router.get('/getStopOvers', async (req, res) => {
-    const connection = await  client.refreshJourney(req.query.refreshToken,{stopovers: true});
-    const resCon = {
-        "legs":[]
-    }
-    for(let i = 0; i<connection.journey.legs.length;i++) {
-        if(connection.journey.legs[i].walking){
-            continue;
+router.get('/savedConnection',async (req,res)=>{
+    const tokens = req.query.refreshTokens;
+    const resCons={"journeys":[]}
+    for(let i = 0;i<tokens.length;i++){
+        const connections = await client.refreshJourney(tokens[i],{subStops:false,remarks:false,entrances:false});
+        let con = connections.journey;
+        let origin = con.legs[0].origin.name;
+        let destination = con.legs[con.legs.length-1].destination.name;
+        if(con.legs[0].origin.name.endsWith(")")){
+            origin = con.legs[0].origin.name.substring(0, con.legs[0].origin.name.indexOf("("));
         }
-        let leg = connection.journey.legs[i];
-
+        if(con.legs[con.legs.length-1].destination.name.endsWith(")")){
+            destination = con.legs[con.legs.length-1].destination.name.substring(0,con.legs[con.legs.length-1].destination.name.indexOf("("));
+        }
+            resCons.journeys.push({
+                "plannedDeparture": con.legs[0].plannedDeparture,
+                "departureDelay": con.legs[0].departureDelay,
+                "plannedDeparturePlatform": con.legs[0].departurePlatform,
+                "plannedArrival": con.legs[con.legs.length - 1].plannedArrival,
+                "arrivalDelay": con.legs[con.legs.length - 1].arrivalDelay,
+                "refreshToken": con.refreshToken,
+                "originName":origin,
+                "destinationName":destination
+            });
     }
-    res.send(resCon);
+    res.send(resCons)
 });
+
 module.exports = router;

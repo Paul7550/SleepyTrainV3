@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {MaterialIcons} from "@expo/vector-icons";
 
 
 
@@ -12,8 +13,7 @@ export default function JourneyCard({
   legs  =[{
     name
   }],
-  refreshToken,
-    handelSelectTrip
+  refreshToken, handelSelectTrip
 })
 {
   const Departure = new Date(plannedDeparture)
@@ -29,7 +29,7 @@ export default function JourneyCard({
       throw new Error(`Response status: ${response.status}`);
     }
     let res = await response.json();
-    handelSelectTrip(res);
+    handelSelectTrip(res,refreshToken);
   }
 
   return (
@@ -38,7 +38,7 @@ export default function JourneyCard({
         <View>
           <View style={JourneyCardStyles.timeRow}>
             <Text style={JourneyCardStyles.timeText}>{Departure.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
-            <Text style={JourneyCardStyles.arrow}> → </Text>
+            <MaterialIcons name={"arrow-forward"} size={20} color={TEXT_DARK}></MaterialIcons>
             <Text style={JourneyCardStyles.timeText}>{Arrival.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
           </View>
           <View style={JourneyCardStyles.subTimeRow}>

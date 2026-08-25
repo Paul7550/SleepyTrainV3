@@ -1,6 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform} from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AlarmModal from "../components/Alarmmodal";
 
 
 function formatTime(isoString) {
@@ -23,6 +25,28 @@ function formatDuration(startIso, endIso) {
     if (hours > 0) return `${hours}h`;
     return `${minutes}m`;
 }
+const getJourneys = async () => {
+    try {
+        const jsonValue = await AsyncStorage.getItem('journeys');
+        console.log(jsonValue)
+        return jsonValue != null ? JSON.parse(jsonValue) : [];
+    } catch (e) {
+       return []
+    }
+};
+const addJourneys = async (newToken) => {
+    try {
+        const existing = await getJourneys();
+        if (existing.includes(newToken)){
+            return
+        }
+        const updated = [...existing, newToken];
+        await AsyncStorage.setItem('journeys', JSON.stringify(updated));
+        console.log(newToken)
+    } catch (e) {
+        console.error('Error adding token', e);
+    }
+};
 
 const RED = '#E8352B';
 const LINE_BLUE = '#2F5FC7';
@@ -85,17 +109,6 @@ function LineOverview({legs}) {
                 ))}
                 <View style={styles.overviewEndDot}/>
             </View>
-
-            <View style={styles.overviewLabelRow}>
-                {legs.map((leg, index) => (
-                    <Text key={index} style={styles.overviewLabel} numberOfLines={2}>
-                        {leg.originName}
-                    </Text>
-                ))}
-                <Text style={styles.overviewLabel} numberOfLines={2}>
-                    {lastLeg.destinationName}
-                </Text>
-            </View>
         </View>
     );
 }
@@ -105,17 +118,17 @@ function LineOverview({legs}) {
 
 /* -------------------------------------------------------------------------- */
 
-function ActionButtons({onAlarm, onSave}) {
+function ActionButtons({setShownAlarm, onSave,token}) {
     return (
         <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.actionButton} onPress={onAlarm} activeOpacity={0.75}>
+            <TouchableOpacity style={styles.actionButton} onPress={()=>setShownAlarm(true)} activeOpacity={0.75}>
                 <View style={styles.actionCircle}>
                     <Text style={styles.actionIcon}><MaterialIcons name="alarm" size={24} color={"#FFFFFF"}/></Text>
                 </View>
                 <Text style={styles.actionLabel}>Alarm</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={onSave} activeOpacity={0.75}>
+            <TouchableOpacity style={styles.actionButton} onPress={()=>addJourneys(token)} activeOpacity={0.75}>
                 <View style={styles.actionCircle}>
                     <Text style={styles.actionIcon}><MaterialIcons name="bookmark" size={24} color={"#FFFFFF"}/></Text>
                 </View>
@@ -269,8 +282,9 @@ function TripTimeline({legs}) {
 /*  Main screen                                                              */
 /* -------------------------------------------------------------------------- */
 
-export default function TripDetailScreen({route, onAlarm, onSave}) {
-    const {trip} = route.params;
+export default function TripDetailScreen({route},onAlarm) {
+    const [showAlarm, setShowAlarm] = useState(false);
+    const {trip,token} = route.params;
     const legs = trip?.legs || [];
     if (legs.length === 0) {
         return (
@@ -279,15 +293,28 @@ export default function TripDetailScreen({route, onAlarm, onSave}) {
             </View>
         );
     }
+    const tripStations = [
+        ...legs.map((leg) => leg.originName),
+        legs[legs.length - 1].destinationName,
+    ];
 
     return (
         <View style={styles.screen}>
             <TripSummary legs={legs}/>
             <LineOverview legs={legs}/>
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                <ActionButtons onAlarm={onAlarm} onSave={onSave}/>
+                <ActionButtons setShownAlarm={setShowAlarm} token={token}/>
                 <TripTimeline legs={legs}/>
             </ScrollView>
+            <AlarmModal
+                visible={showAlarm}
+                onClose={() => setShowAlarm(false)}
+                onConfirm={(alarmConfig) => {
+                    onAlarm?.(alarmConfig);
+                }}
+                stations={tripStations}
+                initialStation={legs[legs.length - 1].destinationName}
+            />
         </View>
     );
 }
