@@ -1,17 +1,19 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import { View, Text, StyleSheet,TouchableOpacity } from 'react-native';
+import {MaterialIcons} from "@expo/vector-icons";
+import {saveLatestConnections} from "../Saver";
 
-/**
- * ConnectionCard
- *
- * A single from/to row — map your array directly over this component.
- *
- * Usage:
- *  {connections.map((c, index) => (
- *    <ConnectionCard key={index} from={c.from} to={c.to} />
- *  ))}
- */
-export default function ConnectionCard({ from, origin,to,destination,loadLatestConnections }) {
+export default function ConnectionCard({ from, origin,to,destination,loadLatestConnections,fav}) {
+    const [favorite,setFavorite] = useState(fav)
+    const [star,setStar]=useState(favorite?'star':'star-border')
+
+    const changeFavorite =async ()=>{
+        const newFavorite = !favorite
+        setFavorite(newFavorite)
+        newFavorite? setStar('star'):setStar('star-border')
+        await saveLatestConnections(from,origin,to,destination,newFavorite)
+    }
+
     return (
         <TouchableOpacity style={styles.card} onPress={()=>loadLatestConnections(from,origin,to,destination)}>
             <View style={styles.stationLine}>
@@ -21,11 +23,12 @@ export default function ConnectionCard({ from, origin,to,destination,loadLatestC
                 <Text style={styles.stationText} numberOfLines={1}>
                     {from}
                 </Text>
+                <MaterialIcons name={star} onPress={()=>changeFavorite()} size={24} ></MaterialIcons>
             </View>
 
             <View style={styles.connectorRow}>
                 <View style={styles.connectorSpacer} />
-                <Text style={styles.arrow}>↓</Text>
+                <MaterialIcons name={"arrow-downward"} color={TEXT_GRAY} size={16}></MaterialIcons>
             </View>
 
             <View style={styles.stationLine}>

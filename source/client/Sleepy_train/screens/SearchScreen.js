@@ -17,6 +17,7 @@ import Header from "../components/Header";
 import {StatusBar} from "expo-status-bar";
 import LatestConnections from "../components/LatestConnections";
 import ConnectionCard from "../components/LatestConnections";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function SearchScreen({navigation}) {
@@ -36,6 +37,7 @@ export default function SearchScreen({navigation}) {
             setLatestConnections(await getLatestConnections());
         }
         getLatestCon()
+
     }, [])
 
     const loadLatestConnections = (from,origin,to,destination)=>{
@@ -59,7 +61,7 @@ export default function SearchScreen({navigation}) {
                 setResults(res.journeys);
                 setEarlierRef(res.earlierRef);
                 setLaterRef(res.laterRef);
-                saveLatestConnections(fromValue,origin,toValue,destination)
+                await saveLatestConnections(fromValue,origin,toValue,destination,false)
                 setLoading(false)
             } catch (error) {
                 console.error(error.message);
@@ -128,8 +130,8 @@ export default function SearchScreen({navigation}) {
                             ))
                             :
                             latestConnections.map((c,index)=>(
-                                <ConnectionCard loadLatestConnections={loadLatestConnections} key={index} from={c.from} to={c.to} destination={c.destination} origin={c.origin}></ConnectionCard>
-                            ))
+                                <ConnectionCard loadLatestConnections={loadLatestConnections} fav={c.favorite} key={index} from={c.from} to={c.to} destination={c.destination} origin={c.origin}></ConnectionCard>
+                            )).sort((a,b)=>Number(b.favorite) - Number(a.favorite))
                         }
                     </ScrollView>
                 }

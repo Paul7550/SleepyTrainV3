@@ -11,17 +11,11 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import SavedTripCard from '../components/SavedTripCard';
+import {getJourneys} from "../Saver";
+import {MaterialIcons,MaterialCommunityIcons} from "@expo/vector-icons";
 
 const API_BASE_URL = 'http://172.20.10.2:3000';
 
-const getJourneyTokens = async () => {
-    try {
-        const jsonValue = await AsyncStorage.getItem('journeys');
-        return jsonValue != null ? JSON.parse(jsonValue) : [];
-    } catch (e) {
-        return [];
-    }
-};
 
 export default function SavedTripsScreen() {
     const navigation = useNavigation();
@@ -31,26 +25,21 @@ export default function SavedTripsScreen() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
 
-    const fetchTrips = useCallback(async () => {
+    const fetchTrips = async () => {
         try {
             setError(null);
-            const tokens = await getJourneyTokens();
-
+            const tokens = await getJourneys()
             if (tokens.length === 0) {
                 setTrips([]);
                 return;
             }
-
             const query = tokens
                 .map((token) => `refreshTokens=${encodeURIComponent(token)}`)
                 .join('&');
-
             const response = await fetch(`${API_BASE_URL}/api/savedConnection/?${query}`, {
                 method: 'GET',
             });
-
             if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
-
             const data = await response.json();
             setTrips(data.journeys || []);
         } catch (e) {
@@ -59,11 +48,11 @@ export default function SavedTripsScreen() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, []);
+    };
 
     useEffect(() => {
         fetchTrips();
-    }, [fetchTrips]);
+    }, []);
 
     const handleRefresh = () => {
         setRefreshing(true);
@@ -97,7 +86,7 @@ export default function SavedTripsScreen() {
                 </View>
             ) : trips.length === 0 ? (
                 <View style={styles.centerContent}>
-                    <Text style={styles.emptyIcon}>🔖</Text>
+                    <MaterialCommunityIcons name={"train-bus"} size={60}></MaterialCommunityIcons>
                     <Text style={styles.emptyTitle}>No saved trips yet</Text>
                     <Text style={styles.emptySubtitle}>
                         Trips you save from your search results will show up here.

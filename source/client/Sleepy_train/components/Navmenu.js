@@ -9,7 +9,7 @@ import {
     Dimensions,
     Platform,
 } from 'react-native';
-import {MaterialIcons} from "@expo/vector-icons";
+import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
 
 /**
  * NavMenu
@@ -82,6 +82,12 @@ export default function NavMenu({ visible, onClose, activeTab, onSelectTab }) {
                     { width: menuWidth, transform: [{ translateX: menuTranslateX }] },
                 ]}
             >
+                <View style={styles.connectorRow}>
+                    <MaterialCommunityIcons name="train-car-passenger" size={26} color="black" />
+                    <MaterialCommunityIcons name="train-car-passenger-door" size={26} color="black" />
+                    <MaterialCommunityIcons name="train-car-passenger" size={26} color="black" />
+                </View>
+
                 <Text style={styles.menuTitle}>Sleepy Train</Text>
 
                 <TouchableOpacity
@@ -116,6 +122,10 @@ const TEXT_GRAY = '#8A8A8E';
 const BORDER = '#E4E4E7';
 
 const styles = StyleSheet.create({
+    connectorRow: {
+        flexDirection: 'row',
+        height: 20,
+    },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0,0,0,0.3)',

@@ -3,6 +3,7 @@ import {View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform} from 're
 import {MaterialIcons} from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AlarmModal from "../components/Alarmmodal";
+import {checkJourneys, saveJourneys} from "../Saver";
 
 
 function formatTime(isoString) {
@@ -25,28 +26,8 @@ function formatDuration(startIso, endIso) {
     if (hours > 0) return `${hours}h`;
     return `${minutes}m`;
 }
-const getJourneys = async () => {
-    try {
-        const jsonValue = await AsyncStorage.getItem('journeys');
-        console.log(jsonValue)
-        return jsonValue != null ? JSON.parse(jsonValue) : [];
-    } catch (e) {
-       return []
-    }
-};
-const addJourneys = async (newToken) => {
-    try {
-        const existing = await getJourneys();
-        if (existing.includes(newToken)){
-            return
-        }
-        const updated = [...existing, newToken];
-        await AsyncStorage.setItem('journeys', JSON.stringify(updated));
-        console.log(newToken)
-    } catch (e) {
-        console.error('Error adding token', e);
-    }
-};
+
+
 
 const RED = '#E8352B';
 const LINE_BLUE = '#2F5FC7';
@@ -119,6 +100,23 @@ function LineOverview({legs}) {
 /* -------------------------------------------------------------------------- */
 
 function ActionButtons({setShownAlarm, onSave,token}) {
+    const [saved, setSaved] = useState(false);
+
+    const savedIcon = saved ? 'bookmark-added' : 'bookmark-add';
+
+    useEffect(() => {
+        let isMounted = true;
+        checkJourneys(token).then((isSaved) => {
+            if (isMounted) setSaved(isSaved);
+        });
+        return () => { isMounted = false; };
+    }, [token]);
+
+    const save = async () => {
+        await saveJourneys(token);
+        setSaved((prev) => !prev);
+    };
+
     return (
         <View style={styles.actionRow}>
             <TouchableOpacity style={styles.actionButton} onPress={()=>setShownAlarm(true)} activeOpacity={0.75}>
@@ -128,9 +126,9 @@ function ActionButtons({setShownAlarm, onSave,token}) {
                 <Text style={styles.actionLabel}>Alarm</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={()=>addJourneys(token)} activeOpacity={0.75}>
+            <TouchableOpacity style={styles.actionButton} onPress={()=>save()} activeOpacity={0.75}>
                 <View style={styles.actionCircle}>
-                    <Text style={styles.actionIcon}><MaterialIcons name="bookmark" size={24} color={"#FFFFFF"}/></Text>
+                    <Text style={styles.actionIcon}><MaterialIcons name={savedIcon} size={24} color={"#FFFFFF"}/></Text>
                 </View>
                 <Text style={styles.actionLabel}>Save</Text>
             </TouchableOpacity>
