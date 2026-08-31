@@ -1,0 +1,263 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:1080px; height:1920px; overflow:hidden; background:#000; }
+
+  #stage {
+    position:relative; width:1080px; height:1920px;
+    background: linear-gradient(160deg, #141416 0%, #1c1c1f 55%, #232326 100%);
+    font-family:-apple-system, "SF Pro Display", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    overflow:hidden;
+  }
+
+  /* Warm brand glow behind the device so the white UI separates from the charcoal. */
+  #glow {
+    position:absolute; left:50%; top:52%; width:1500px; height:1500px;
+    transform:translate(-50%,-50%);
+    background: radial-gradient(circle, rgba(232,53,43,0.30) 0%, rgba(232,53,43,0.10) 38%, rgba(232,53,43,0) 68%);
+    will-change:transform, opacity;
+  }
+
+  /* ---- Captions: one pre-built node per beat, words staggered ---- */
+  #captions { position:absolute; left:0; top:120px; width:1080px; height:180px; }
+  .cap {
+    position:absolute; left:0; top:0; width:1080px;
+    text-align:center; color:#fff;
+    font-size:62px; font-weight:600; letter-spacing:-0.02em; line-height:1.15;
+    opacity:0;
+  }
+  .cap span { display:inline-block; will-change:transform, opacity; }
+
+  /* ---- Device ---- */
+  #phone {
+    position:absolute; left:50%; top:1040px;
+    width:659px; height:1400px;
+    transform:translate(-50%,-50%);
+    background:#0a0a0c;
+    border-radius:70px;
+    padding:14px;
+    box-shadow: 0 50px 90px rgba(0,0,0,0.62), 0 0 0 2px rgba(255,255,255,0.07);
+    will-change:transform, opacity;
+  }
+  #screen {
+    position:relative; width:631px; height:1372px;
+    border-radius:56px; overflow:hidden; background:#fff;
+  }
+  .scr {
+    position:absolute; left:0; top:0; width:631px; height:1372px;
+    object-fit:cover; opacity:0;
+    will-change:transform, opacity, clip-path, filter;
+    transform-origin:50% 50%;
+  }
+
+  /* Tap ripple */
+  #tap {
+    position:absolute; z-index:10;
+    width:150px; height:150px; margin:-75px 0 0 -75px;
+    border-radius:50%;
+    /* Dark core + bright halo so it reads on white lists AND the red header. */
+    background:rgba(0,0,0,0.22);
+    box-shadow:0 0 0 5px rgba(255,255,255,0.75), 0 0 26px 6px rgba(0,0,0,0.18);
+    opacity:0; pointer-events:none; will-change:transform, opacity;
+  }
+  /* Ring that pulses out of the Save icon on the save beat */
+  #savering {
+    position:absolute; z-index:10;
+    width:150px; height:150px; margin:-75px 0 0 -75px;
+    border-radius:50%; border:8px solid #E8352B;
+    box-shadow:0 0 22px 4px rgba(232,53,43,0.55);
+    opacity:0; pointer-events:none; will-change:transform, opacity;
+  }
+
+  /* ---- Wordmark ---- */
+  #wordmark {
+    position:absolute; left:0; bottom:74px; width:1080px; text-align:center;
+    color:#fff; font-size:46px; font-weight:700; letter-spacing:-0.01em; opacity:0;
+  }
+  #tagline {
+    position:absolute; left:0; bottom:28px; width:1080px; text-align:center;
+    color:rgba(255,255,255,0.55); font-size:30px; font-weight:500; opacity:0;
+  }
+
+  /* ---- Progress ---- */
+  #progress { position:absolute; left:0; bottom:0; width:1080px; height:5px; background:rgba(255,255,255,0.10); }
+  #bar { width:100%; height:100%; background:#E8352B; transform:scaleX(0); transform-origin:0 50%; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="glow"></div>
+  <div id="captions"></div>
+  <div id="phone">
+    <div id="screen">
+      <div id="tap"></div>
+      <div id="savering"></div>
+    </div>
+  </div>
+  <div id="wordmark">Sleepy Train</div>
+  <div id="tagline">Never miss your stop again</div>
+  <div id="progress"><div id="bar"></div></div>
+</div>
+<script>
+// Populated by render.mjs after GSAP is injected.
+window.__buildTimeline = function () {
+  const F = (n) => "Simulator%20Screenshot%20-%20iPhone%2017%20Pro%20-%202026-08-31%20at%20" + n + ".png";
+
+  // Narrative order, verified against the actual screenshots.
+  const BEATS = [
+    { file:"22.02.40", cap:"Find your connection",        enter:"rise",     hold:2.4, tap:[48.9,16.6] },
+    { file:"22.02.52", cap:"Stations near you",           enter:"sheetUp",  hold:2.4, tap:[28.6,22.3] },
+    { file:"22.03.29", cap:"Set your route",              enter:"sheetDown",hold:2.2, tap:[49.8,34.9] },
+    { file:"22.03.42", cap:"Pick a connection",           enter:"push",     hold:2.6, tap:[49.8,45.0] },
+    { file:"22.03.52", cap:"See every stop",              enter:"push",     hold:2.6, tap:[75.1,29.2] },
+    { file:"22.04.00", cap:"Save it for later",           enter:"save",     hold:1.4, tap:[25.2,29.2] },
+    { file:"22.04.24", cap:"Set your alarm",              enter:"sheetUp2", hold:3.0, tap:[7.8,9.5]  },
+    { file:"22.04.45", cap:"Jump anywhere",               enter:"drawer",   hold:1.6, tap:[21.3,33.1] },
+    { file:"22.04.52", cap:"Sleep easy — we'll wake you", enter:"push", hold:2.4, tap:null }
+  ];
+
+  const screen = document.getElementById("screen");
+  const capWrap = document.getElementById("captions");
+  const tap = document.getElementById("tap");
+  const ring = document.getElementById("savering");
+
+  // Build screen + caption nodes up front so nothing mutates the DOM mid-timeline.
+  const imgs = [], caps = [];
+  BEATS.forEach((b, i) => {
+    const img = document.createElement("img");
+    img.className = "scr";
+    img.src = "../" + F(b.file);
+    screen.insertBefore(img, tap);
+    imgs.push(img);
+
+    const c = document.createElement("div");
+    c.className = "cap";
+    c.innerHTML = b.cap.split(" ").map(w => "<span>" + w + "</span>").join(" ");
+    capWrap.appendChild(c);
+    caps.push(c);
+  });
+
+  const EASE_UI     = "power3.out";     // Apple critically-damped default (no overshoot)
+  const EASE_THROWN = "back.out(1.1)";  // reserved for momentum-carrying motion
+  const T_IN = 0.55;
+
+  gsap.set(imgs, { opacity:0 });
+  gsap.set(caps, { opacity:0 });
+
+  const tl = gsap.timeline({ paused:true });
+
+  /* ---------------- Intro ---------------- */
+  tl.set("#phone", { y:260, scale:0.88, opacity:0 })
+    .set("#wordmark", { opacity:0, y:24 })
+    .set("#tagline",  { opacity:0, y:18 })
+    .set("#glow",     { opacity:0, scale:0.8 })
+    .to("#glow",     { opacity:1, scale:1, duration:1.2, ease:"power2.out" }, 0.05)
+    .to("#wordmark", { opacity:1, y:0, duration:0.7, ease:EASE_UI }, 0.15)
+    .to("#tagline",  { opacity:1, y:0, duration:0.7, ease:EASE_UI }, 0.30)
+    .to("#phone",    { y:0, scale:1, opacity:1, duration:0.95, ease:EASE_THROWN }, 0.35);
+
+  let t = 1.6;
+
+  BEATS.forEach((b, i) => {
+    const img  = imgs[i];
+    const prev = i > 0 ? imgs[i-1] : null;
+    const cap  = caps[i];
+
+    /* ---- transition in ---- */
+    switch (b.enter) {
+      case "rise":
+        // Fires during the intro so the device never shows an empty white screen.
+        tl.fromTo(img, { opacity:0 }, { opacity:1, duration:0.5, ease:EASE_UI }, 0.45);
+        break;
+
+      case "push": // iOS navigation push: new in from right, outgoing parks left + dims
+        tl.fromTo(img, { opacity:1, xPercent:100 }, { xPercent:0, duration:T_IN, ease:EASE_UI }, t)
+          .to(prev, { xPercent:-18, filter:"brightness(0.72)", duration:T_IN, ease:EASE_UI }, t)
+          .set(prev, { opacity:0, xPercent:0, filter:"none" }, t + T_IN);
+        break;
+
+      case "sheetUp": // pageSheet arriving from below
+        tl.fromTo(img, { opacity:1, yPercent:100 }, { yPercent:0, duration:0.62, ease:EASE_THROWN }, t)
+          .to(prev, { scale:0.96, filter:"brightness(0.7)", duration:0.62, ease:EASE_UI }, t);
+        break;
+
+      case "sheetDown": // that same sheet leaving along the path it arrived on
+        tl.set(img, { opacity:1, zIndex:0 }, t)
+          .set(prev, { zIndex:2 }, t)
+          .to(prev, { yPercent:100, duration:0.58, ease:"power2.in" }, t)
+          .fromTo(img, { scale:0.96, filter:"brightness(0.7)" },
+                       { scale:1, filter:"brightness(1)", duration:0.58, ease:EASE_UI }, t)
+          .set(prev, { opacity:0, yPercent:0, zIndex:0 }, t + 0.58);
+        break;
+
+      case "save": // no screen change - only the Save icon fills, so the pulse IS the beat
+        tl.set(img, { opacity:1, zIndex:1 }, t)
+          .to(prev, { opacity:0, duration:0.30, ease:"none" }, t)
+          .set(ring, { left:"75.1%", top:"29.2%", scale:0.35, opacity:0 }, t)
+          .to(ring, { scale:1.5, opacity:0.9, duration:0.16, ease:"power2.out" }, t + 0.02)
+          .to(ring, { scale:2.4, opacity:0, duration:0.5, ease:"power2.out" }, t + 0.18);
+        break;
+
+      case "sheetUp2": // alarm sheet: screenshot bakes in the scrim, so reveal it upward
+        tl.set(img, { opacity:1, clipPath:"inset(100% 0% 0% 0%)", yPercent:6, zIndex:1 }, t)
+          .to(img, { clipPath:"inset(0% 0% 0% 0%)", yPercent:0, duration:0.66, ease:EASE_THROWN }, t)
+          .set(prev, { opacity:0 }, t + 0.66);
+        break;
+
+      case "drawer": // nav drawer: reveal from the left edge it slides out of
+        tl.set(img, { opacity:1, clipPath:"inset(0% 100% 0% 0%)", xPercent:-6, zIndex:1 }, t)
+          .to(img, { clipPath:"inset(0% 0% 0% 0%)", xPercent:0, duration:0.55, ease:EASE_UI }, t)
+          .set(prev, { opacity:0 }, t + 0.55);
+        break;
+    }
+
+    /* ---- caption: word-level stagger ---- */
+    tl.fromTo(cap.querySelectorAll("span"),
+        { y:20, opacity:0 },
+        { y:0, opacity:1, duration:0.5, stagger:0.04, ease:"power2.out" }, t + 0.10)
+      .set(cap, { opacity:1 }, t + 0.10);
+
+    /* ---- Ken Burns drift so no frame is ever frozen ---- */
+    tl.fromTo(img, { scale:1 }, { scale:1.03, duration:b.hold + 0.6, ease:"none" }, t);
+
+    const outAt = t + b.hold;
+
+    /* ---- tap ripple fires just BEFORE the transition it causes ---- */
+    if (b.tap) {
+      tl.set(tap, { left:b.tap[0] + "%", top:b.tap[1] + "%", scale:0.2, opacity:0 }, outAt - 0.30)
+        .to(tap, { scale:1, opacity:0.85, duration:0.14, ease:"power2.out" }, outAt - 0.30)
+        .to(tap, { scale:1.5, opacity:0, duration:0.30, ease:"power2.out" }, outAt - 0.16);
+    }
+
+    /* ---- caption out ---- */
+    if (i < BEATS.length - 1) {
+      tl.to(cap.querySelectorAll("span"),
+            { y:-14, opacity:0, duration:0.30, stagger:0.02, ease:"power2.in" }, outAt - 0.12)
+        .set(cap, { opacity:0 }, outAt + 0.26);
+    }
+
+    t = outAt;
+  });
+
+  /* ---------------- Outro ---------------- */
+  tl.to(caps[caps.length-1].querySelectorAll("span"),
+        { y:-14, opacity:0, duration:0.35, stagger:0.02, ease:"power2.in" }, t)
+    .to("#phone", { y:110, scale:0.93, opacity:0, duration:0.85, ease:"power2.inOut" }, t + 0.15)
+    .to("#glow",  { scale:1.15, opacity:0.8, duration:1.0, ease:"power2.out" }, t)
+    .to("#wordmark", { scale:1.4, y:-40, duration:1.0, ease:EASE_UI }, t + 0.25)
+    .to("#tagline",  { opacity:0.9, y:-40, duration:0.9, ease:EASE_UI }, t + 0.35);
+
+  const DURATION = t + 1.4;
+
+  // Progress bar spans the whole piece.
+  tl.fromTo("#bar", { scaleX:0 }, { scaleX:1, duration:DURATION, ease:"none" }, 0);
+
+  window.__duration = DURATION;
+  return tl;
+};
+</script>
+</body>
+</html>

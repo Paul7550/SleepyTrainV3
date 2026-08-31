@@ -1,0 +1,10 @@
+{
+  "name": "sleepy-train-promo",
+  "private": true,
+  "type": "module",
+  "description": "Renders the Sleepy Train promo video from the simulator screenshots.",
+  "dependencies": {
+    "gsap": "^3.13.0",
+    "playwright": "^1.50.0"
+  }
+}
