@@ -11,7 +11,7 @@ import {MaterialIcons} from "@expo/vector-icons";
 import {getAlarm, getJourneys, removeAlarm} from "../Saver";
 
 
-const API_BASE_URL = 'http://172.20.10.2:3000';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 
 /* -------------------------------------------------------------------------- */
@@ -59,7 +59,7 @@ export default function ActiveAlarmsScreen() {
             const query = savedAlarms
                 .map(alarm => `refreshTokens=${encodeURIComponent(alarm.token)}&stopIds=${alarm.stopId}`)
                 .join('&');
-            const response = await fetch(`${API_BASE_URL}/api/checkForDelay/?${query}`, {
+            const response = await fetch(`${API_BASE_URL}/checkForDelay/?${query}`, {
                 method: 'GET',
             });
             if (!response.ok) throw new Error(`Request failed with status ${response.status}`);

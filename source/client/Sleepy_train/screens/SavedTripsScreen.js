@@ -14,7 +14,7 @@ import SavedTripCard from '../components/SavedTripCard';
 import {getJourneys} from "../Saver";
 import {MaterialIcons,MaterialCommunityIcons} from "@expo/vector-icons";
 
-const API_BASE_URL = 'http://172.20.10.2:3000';
+const API_BASE_URL =process.env.EXPO_PUBLIC_API_URL;
 
 
 export default function SavedTripsScreen() {
@@ -36,7 +36,7 @@ export default function SavedTripsScreen() {
             const query = tokens
                 .map((token) => `refreshTokens=${encodeURIComponent(token)}`)
                 .join('&');
-            const response = await fetch(`${API_BASE_URL}/api/savedConnection/?${query}`, {
+            const response = await fetch(`${API_BASE_URL}/savedConnection/?${query}`, {
                 method: 'GET',
             });
             if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
