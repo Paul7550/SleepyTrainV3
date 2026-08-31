@@ -129,7 +129,7 @@ window.__buildTimeline = function () {
   BEATS.forEach((b, i) => {
     const img = document.createElement("img");
     img.className = "scr";
-    img.src = "../" + F(b.file);
+    img.src = F(b.file);
     screen.insertBefore(img, tap);
     imgs.push(img);
 
