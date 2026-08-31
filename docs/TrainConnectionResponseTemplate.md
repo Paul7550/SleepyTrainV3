@@ -39,7 +39,9 @@
             "name": string,
             "direction": string,
             "originName": string,
+            "originId": int,
             "destinationName": string,
+            "destinationId": int,
             "plannedDeparture": DateTime,
             "departureDelay": int,
             "plannedDeparturePlatform": int,
@@ -49,7 +51,8 @@
             "stops": [
                 "plannedArrival": Datetime,
                 "arrivalDelay": int,
-                "name": string
+                "name": string,
+                "id":  int,
         	]
         }
     ]
@@ -98,3 +101,15 @@
 }
 ```
 
+**api/checkForDelay**
+
+```json
+"header":{
+    "refreshtokens":[],
+    "stopIds":[]
+}
+"body":{
+    "delay": int,
+    "station": string,
+    "arrivalTime": string
+}

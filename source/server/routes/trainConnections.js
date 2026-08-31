@@ -240,5 +240,59 @@ router.get('/savedConnection', async (req, res) => {
     }
     res.send(resCons)
 });
+<<<<<<< Updated upstream
+=======
+/**
+ * @swagger
+ * /api/checkForDelay:
+ *   get:
+ *     parameters:
+ *       - in: query
+ *         name: refreshTokens
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The refresh token for the journey
+ *       - in: query
+ *         name: stopId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The id from a stop
+ *     summary: Returns TrainConnections
+ *     description: Returns connections
+ *     responses:
+ *       200:
+ *         description: A connection
+ */
+router.get('/checkForDelay', async (req, res) => {
+    const tokens = [req.query.refreshTokens].flat().filter(Boolean);
+    const stopIds = [req.query.stopIds].flat().filter(Boolean);
+    const resCons = {"alarms": []}
+    for (let j = 0; j < tokens.length; j++) {
+        const token = tokens[j];
+        const stopId = stopIds[j];
+        const refreshedJourney = await client.refreshJourney(token, {
+            stopovers: true,
+            subStops: false
+        });
+        for (let i = 0; i < refreshedJourney.journey.legs.length; i++) {
+            for (let o = 1; o <(refreshedJourney.journey.legs[i].stopovers ?? []).length; o++) {
+                if (refreshedJourney.journey.legs[i].stopovers[o].stop.id == stopId) {
+                    resCons.alarms.push({
+                        "delay": refreshedJourney.journey.legs[i].stopovers[o].arrivalDelay == null? 0:refreshedJourney.journey.legs[i].stopovers[o].arrivalDelay,
+                        "station": refreshedJourney.journey.legs[i].stopovers[o].stop.name,
+                        "arrivalTime": refreshedJourney.journey.legs[i].stopovers[o].plannedArrival
+                    })
+                }
+            }
+        }
+    }
+    console.log(resCons.alarms)
+    res.send(resCons);
+
+
+})
+>>>>>>> Stashed changes
 
 module.exports = router;
