@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {MaterialIcons} from "@expo/vector-icons";
+import { card, colors, space, type, weight } from '../theme';
 
 export default function SavedTripCard({
                                           refreshToken,
@@ -41,7 +42,7 @@ export default function SavedTripCard({
 
                     <View style={styles.connectorRow}>
                         <View style={styles.connectorSpacer} />
-                        <MaterialIcons name={"arrow-downward"} size={20} color={TEXT_DARK} />
+                        <MaterialIcons name={"arrow-downward"} size={20} color={colors.textPrimary} />
                     </View>
 
                     <View style={styles.stationRow}>
@@ -66,7 +67,7 @@ export default function SavedTripCard({
             {/* Time row */}
             <View style={styles.timeRow}>
                 <Text style={styles.timeText}>{Departure.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
-                <MaterialIcons name={"arrow-forward"} size={20} color={TEXT_DARK}></MaterialIcons>
+                <MaterialIcons name={"arrow-forward"} size={20} color={colors.textPrimary}></MaterialIcons>
                 <Text style={styles.timeText}>{Arrival.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
             </View>
         </TouchableOpacity>
@@ -82,21 +83,9 @@ function CalendarIcon() {
     );
 }
 
-const RED = '#E8352B';
-const GRAY = '#9A9A9E';
-const BORDER = '#E4E4E7';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-
 const styles = StyleSheet.create({
     card: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: BORDER,
-        paddingVertical: 16,
-        paddingHorizontal: 18,
-        width: 320,
+        ...card,
     },
     topRow: {
         flexDirection: 'row',
@@ -116,59 +105,55 @@ const styles = StyleSheet.create({
         borderRadius: 13,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 12,
+        marginRight: space.md,
     },
     badgeRed: {
-        backgroundColor: RED,
+        backgroundColor: colors.brand,
     },
     badgeGray: {
-        backgroundColor: GRAY,
+        backgroundColor: colors.textSecondary,
     },
     badgeText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 12,
+        color: colors.textOnBrand,
+        fontWeight: weight.bold,
+        fontSize: type.caption,
     },
     stationText: {
-        fontSize: 17,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
         flexShrink: 1,
     },
     connectorRow: {
         flexDirection: 'row',
-        height: 22,
+        height: space.xxl,
     },
     connectorSpacer: {
         width: 26,
         alignItems: 'center',
-        marginRight: 12,
-    },
-    arrowDown: {
-        fontSize: 15,
-        color: TEXT_DARK,
+        marginRight: space.md,
     },
     platformText: {
-        fontSize: 15,
-        color: TEXT_GRAY,
-        marginLeft: 8,
+        fontSize: type.body,
+        color: colors.textSecondary,
+        marginLeft: space.sm,
     },
 
     /* Date row */
     dateRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 18,
+        marginTop: space.xl,
     },
     dateText: {
-        fontSize: 15,
-        color: TEXT_GRAY,
-        marginLeft: 10,
+        fontSize: type.body,
+        color: colors.textSecondary,
+        marginLeft: space.md,
     },
     calendar: {
         width: 18,
         height: 17,
         borderWidth: 1.6,
-        borderColor: TEXT_GRAY,
+        borderColor: colors.textSecondary,
         borderRadius: 3,
         marginTop: 2,
     },
@@ -178,7 +163,7 @@ const styles = StyleSheet.create({
         left: 2,
         width: 2,
         height: 6,
-        backgroundColor: TEXT_GRAY,
+        backgroundColor: colors.textSecondary,
         borderRadius: 1,
     },
     calendarLeg2: {
@@ -187,7 +172,7 @@ const styles = StyleSheet.create({
         right: 2,
         width: 2,
         height: 6,
-        backgroundColor: TEXT_GRAY,
+        backgroundColor: colors.textSecondary,
         borderRadius: 1,
     },
 
@@ -195,16 +180,12 @@ const styles = StyleSheet.create({
     timeRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 8,
-        marginLeft: 28,
+        marginTop: space.sm,
+        marginLeft: space.xxxl,
     },
     timeText: {
-        fontSize: 17,
-        fontWeight: '600',
-        color: TEXT_DARK,
-    },
-    timeArrow: {
-        fontSize: 16,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        fontWeight: weight.semibold,
+        color: colors.textPrimary,
     },
 });

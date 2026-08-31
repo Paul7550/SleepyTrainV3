@@ -2,8 +2,9 @@ import React, {useEffect, useState} from 'react';
 import { View, Text, StyleSheet,TouchableOpacity } from 'react-native';
 import {MaterialIcons} from "@expo/vector-icons";
 import {saveLatestConnections} from "../Saver";
+import { colors, listDivider, listRow, radius, space, type, weight } from '../theme';
 
-export default function ConnectionCard({ from, origin,to,destination,loadLatestConnections,fav}) {
+export default function ConnectionCard({ from, origin,to,destination,loadLatestConnections,fav, first = false}) {
     const [favorite,setFavorite] = useState(fav)
     const [star,setStar]=useState(favorite?'star':'star-border')
 
@@ -15,7 +16,10 @@ export default function ConnectionCard({ from, origin,to,destination,loadLatestC
     }
 
     return (
-        <TouchableOpacity style={styles.card} onPress={()=>loadLatestConnections(from,origin,to,destination)}>
+        <TouchableOpacity
+            style={[styles.row, !first && styles.divider]}
+            onPress={()=>loadLatestConnections(from,origin,to,destination)}
+        >
             <View style={styles.stationLine}>
                 <View style={[styles.badge, styles.badgeRed]}>
                     <Text style={styles.badgeText}>A</Text>
@@ -23,12 +27,19 @@ export default function ConnectionCard({ from, origin,to,destination,loadLatestC
                 <Text style={styles.stationText} numberOfLines={1}>
                     {from}
                 </Text>
-                <MaterialIcons name={star} onPress={()=>changeFavorite()} size={24} ></MaterialIcons>
+                <TouchableOpacity
+                    onPress={changeFavorite}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={favorite ? 'Remove from favourites' : 'Add to favourites'}
+                >
+                    <MaterialIcons name={star} size={24} />
+                </TouchableOpacity>
             </View>
 
             <View style={styles.connectorRow}>
                 <View style={styles.connectorSpacer} />
-                <MaterialIcons name={"arrow-downward"} color={TEXT_GRAY} size={16}></MaterialIcons>
+                <MaterialIcons name={"arrow-downward"} color={colors.textSecondary} size={16}></MaterialIcons>
             </View>
 
             <View style={styles.stationLine}>
@@ -43,19 +54,12 @@ export default function ConnectionCard({ from, origin,to,destination,loadLatestC
     );
 }
 
-const RED = '#E8352B';
-const GRAY = '#9A9A9E';
-const BORDER = '#E4E4E7';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-
 const styles = StyleSheet.create({
-    card: {
-        backgroundColor: '#FFFFFF',
-        borderWidth: 1,
-        borderColor: BORDER,
-        paddingVertical: 14,
-        paddingHorizontal: 16,
+    row: {
+        ...listRow,
+    },
+    divider: {
+        ...listDivider,
     },
     stationLine: {
         flexDirection: 'row',
@@ -64,38 +68,35 @@ const styles = StyleSheet.create({
     badge: {
         width: 24,
         height: 24,
-        borderRadius: 12,
+        borderRadius: radius.md,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 12,
+        marginRight: space.md,
     },
     badgeRed: {
-        backgroundColor: RED,
+        backgroundColor: colors.brand,
     },
     badgeGray: {
-        backgroundColor: GRAY,
+        backgroundColor: colors.textSecondary,
     },
     badgeText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 11,
+        color: colors.textOnBrand,
+        fontWeight: weight.bold,
+        fontSize: type.caption,
     },
     stationText: {
-        fontSize: 15,
-        color: TEXT_DARK,
+        flex: 1,
+        fontSize: type.body,
+        color: colors.textPrimary,
         flexShrink: 1,
     },
     connectorRow: {
         flexDirection: 'row',
-        height: 20,
+        height: space.xxl,
     },
     connectorSpacer: {
         width: 24,
         alignItems: 'center',
-        marginRight: 12,
-    },
-    arrow: {
-        fontSize: 14,
-        color: TEXT_GRAY,
+        marginRight: space.md,
     },
 });

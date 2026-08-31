@@ -1,8 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, ScrollView} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {MaterialIcons} from '@expo/vector-icons';
 import AlarmModal from "../components/Alarmmodal";
 import {checkJourneys, saveAlarm, saveJourneys} from "../Saver";
+import { EmptyState } from '../components/StateViews';
+import { colors, radius, screenPadding, space, type, weight } from '../theme';
 
 
 function formatTime(isoString) {
@@ -31,14 +34,6 @@ function setAlarm(config,token) {
     saveAlarm(token,config.station.tripStationId,time,config.sound)
 }
 
-const RED = '#E8352B';
-const LINE_BLUE = '#2F5FC7';
-const GREEN = '#2E9B4F';
-const BORDER = '#E4E4E7';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-const TEXT_MID_GRAY = '#6E6E73';
-
 /* -------------------------------------------------------------------------- */
 /*  Trip summary (top time range)                                            */
 
@@ -53,7 +48,7 @@ function TripSummary({legs}) {
             <View>
                 <View style={styles.summaryTimeRow}>
                     <Text style={styles.summaryTime}>{formatTime(firstLeg.plannedDeparture)}</Text>
-                    <MaterialIcons name="arrow-forward" size={24} color={TEXT_DARK}/>
+                    <MaterialIcons name="arrow-forward" size={24} color={colors.textPrimary}/>
                     <Text style={styles.summaryTime}>{formatTime(lastLeg.plannedArrival)}</Text>
                 </View>
                 <View style={styles.summarySubTimeRow}>
@@ -121,16 +116,16 @@ function ActionButtons({setShownAlarm, onSave,token}) {
 
     return (
         <View style={styles.actionRow}>
-            <TouchableOpacity style={styles.actionButton} onPress={()=>setShownAlarm(true)} activeOpacity={0.75}>
+            <TouchableOpacity style={styles.actionButton} onPress={()=>setShownAlarm(true)} activeOpacity={0.75} accessibilityRole="button" accessibilityLabel="Set an alarm for this trip">
                 <View style={styles.actionCircle}>
-                    <Text style={styles.actionIcon}><MaterialIcons name="alarm" size={24} color={"#FFFFFF"}/></Text>
+                    <Text style={styles.actionIcon}><MaterialIcons name="alarm" size={24} color={colors.textOnBrand}/></Text>
                 </View>
                 <Text style={styles.actionLabel}>Alarm</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionButton} onPress={()=>save()} activeOpacity={0.75}>
+            <TouchableOpacity style={styles.actionButton} onPress={()=>save()} activeOpacity={0.75} accessibilityRole="button" accessibilityLabel={saved ? 'Remove trip from saved' : 'Save this trip'}>
                 <View style={styles.actionCircle}>
-                    <Text style={styles.actionIcon}><MaterialIcons name={savedIcon} size={24} color={"#FFFFFF"}/></Text>
+                    <Text style={styles.actionIcon}><MaterialIcons name={savedIcon} size={24} color={colors.textOnBrand}/></Text>
                 </View>
                 <Text style={styles.actionLabel}>Save</Text>
             </TouchableOpacity>
@@ -210,7 +205,7 @@ function TimelineLegRow({leg, expanded, onToggle}) {
                     <View style={styles.legDirectionColumn}>
                         <View style={styles.legDirectionRow}>
 
-                            <MaterialIcons name="arrow-forward" size={24} color={TEXT_GRAY}/>
+                            <MaterialIcons name="arrow-forward" size={24} color={colors.textSecondary}/>
                             <Text style={styles.legDirectionText} numberOfLines={1}>
                                 {leg.direction}
                             </Text>
@@ -218,8 +213,8 @@ function TimelineLegRow({leg, expanded, onToggle}) {
                     </View>
                     <Text style={styles.legDuration}>{formatDuration(leg.plannedDeparture, leg.plannedArrival)}</Text>
                     <Text style={styles.legChevron}>{expanded ?
-                        <MaterialIcons name="expand-less" size={24} color={TEXT_GRAY}/> :
-                        <MaterialIcons name="expand-more" size={24} color={TEXT_GRAY}/>}</Text>
+                        <MaterialIcons name="expand-less" size={24} color={colors.textSecondary}/> :
+                        <MaterialIcons name="expand-more" size={24} color={colors.textSecondary}/>}</Text>
                 </TouchableOpacity>
             }
             {expanded && leg.stops && leg.stops.length > 0 && (
@@ -288,9 +283,11 @@ export default function TripDetailScreen({route},onAlarm) {
     const legs = trip?.legs || [];
     if (legs.length === 0) {
         return (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No trip data</Text>
-            </View>
+            <EmptyState
+                icon="train"
+                title="No trip data"
+                subtitle="This connection could not be loaded."
+            />
         );
     }
     const result = [];
@@ -314,7 +311,7 @@ export default function TripDetailScreen({route},onAlarm) {
         tripStationId: lastLeg.destinationId
     });
     return (
-        <View style={styles.screen}>
+        <SafeAreaView style={styles.screen} edges={['bottom']}>
             <TripSummary legs={legs}/>
             <LineOverview legs={legs}/>
             <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -328,7 +325,7 @@ export default function TripDetailScreen({route},onAlarm) {
                 stations={result}
                 initialStation={legs[legs.length - 1].destinationName}
             />
-        </View>
+        </SafeAreaView>
     );
 }
 
@@ -336,94 +333,46 @@ export default function TripDetailScreen({route},onAlarm) {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     scrollContent: {
-        paddingBottom: 40,
-    },
-    emptyContainer: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    emptyText: {
-        fontSize: 16,
-        color: TEXT_GRAY,
-    },
-
-    /* Header */
-    header: {
-        backgroundColor: RED,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 18,
-        paddingTop: Platform.OS === 'android' ? 18 : 8,
-        paddingBottom: 18,
-    },
-    headerAction: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    headerActionIcon: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        marginRight: 6,
-    },
-    headerActionLabel: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    headerTitle: {
-        color: '#FFFFFF',
-        fontSize: 20,
-        fontWeight: '700',
-    },
-    headerRefreshIcon: {
-        color: '#FFFFFF',
-        fontSize: 22,
+        paddingBottom: space.max,
     },
 
     /* Summary */
     summaryRow: {
-        paddingHorizontal: 18,
-        paddingTop: 18,
+        paddingHorizontal: screenPadding,
+        paddingTop: space.xl,
     },
     summaryTimeRow: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     summaryTime: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: TEXT_DARK,
-    },
-    summaryArrow: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: TEXT_DARK,
+        fontSize: type.subdisplay,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     summarySubTimeRow: {
         flexDirection: 'row',
         marginTop: 2,
     },
     summarySubTime: {
-        fontSize: 13,
-        fontWeight: '600',
-        color: GREEN,
+        fontSize: type.small,
+        fontWeight: weight.semibold,
+        color: colors.success,
         width: 56,
     },
     summarySubTimeSpacer: {
-        width: 24,
+        width: space.xxxl,
     },
 
     /* Line overview */
     overviewContainer: {
-        paddingHorizontal: 18,
-        borderColor: BORDER,
-        paddingTop: 22,
-        paddingBottom: 7,
+        paddingHorizontal: screenPadding,
+        borderColor: colors.border,
+        paddingTop: space.xxl,
+        paddingBottom: space.sm,
         borderBottomWidth: 1,
     },
     overviewLineRow: {
@@ -431,20 +380,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     overviewBadge: {
-        backgroundColor: LINE_BLUE,
-        borderRadius: 6,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
+        backgroundColor: colors.routeLine,
+        borderRadius: radius.sm,
+        paddingHorizontal: space.sm,
+        paddingVertical: space.xs,
         zIndex: 2,
     },
     overviewBadgeText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 13,
+        color: colors.textOnBrand,
+        fontWeight: weight.bold,
+        fontSize: type.small,
     },
     overviewConnector: {
         height: 3,
-        backgroundColor: LINE_BLUE,
+        backgroundColor: colors.routeLine,
         flex: 1,
         marginHorizontal: -2,
     },
@@ -452,29 +401,18 @@ const styles = StyleSheet.create({
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: LINE_BLUE,
+        backgroundColor: colors.routeLine,
         marginLeft: -2,
-    },
-    overviewLabelRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginTop: 6,
-    },
-    overviewLabel: {
-        fontSize: 12,
-        color: TEXT_MID_GRAY,
-        flex: 1,
-        marginRight: 6,
     },
 
     /* Action buttons */
     actionRow: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        paddingVertical: 5,
-        marginTop: 5,
+        paddingVertical: space.xs,
+        marginTop: space.xs,
         borderBottomWidth: 1,
-        borderColor: BORDER,
+        borderColor: colors.border,
     },
     actionButton: {
         alignItems: 'center',
@@ -482,24 +420,24 @@ const styles = StyleSheet.create({
     actionCircle: {
         width: 32,
         height: 32,
-        borderRadius: 23,
-        backgroundColor: RED,
+        borderRadius: radius.lg,
+        backgroundColor: colors.brand,
         alignItems: 'center',
         justifyContent: 'center',
     },
     actionIcon: {
-        fontSize: 20,
+        fontSize: type.heading,
     },
     actionLabel: {
-        fontSize: 13,
-        color: TEXT_DARK,
-        marginTop: 6,
+        fontSize: type.small,
+        color: colors.textPrimary,
+        marginTop: space.sm,
     },
 
     /* Timeline */
     timelineContainer: {
-        paddingHorizontal: 18,
-        marginTop: 8,
+        paddingHorizontal: screenPadding,
+        marginTop: space.sm,
     },
     timelineLine: {
         position: 'absolute',
@@ -507,14 +445,14 @@ const styles = StyleSheet.create({
         top: 6,
         bottom: 6,
         width: 3,
-        backgroundColor: LINE_BLUE,
+        backgroundColor: colors.routeLine,
     },
     stopRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 14,
+        paddingVertical: space.base,
         borderBottomWidth: 1,
-        borderBottomColor: BORDER,
+        borderBottomColor: colors.border,
     },
     stopDotColumn: {
         width: 14,
@@ -524,109 +462,105 @@ const styles = StyleSheet.create({
         width: 12,
         height: 12,
         borderRadius: 6,
-        backgroundColor: LINE_BLUE,
+        backgroundColor: colors.routeLine,
     },
     stopDotBlack: {
         width: 8,
         height: 8,
         borderRadius: 4,
-        backgroundColor: TEXT_DARK,
+        backgroundColor: colors.textPrimary,
     },
     stopTimeColumn: {
         width: 56,
-        marginLeft: 14,
+        marginLeft: space.base,
     },
     stopTime: {
-        fontSize: 14,
-        color: TEXT_DARK,
+        fontSize: type.small,
+        color: colors.textPrimary,
     },
     stopTimeBold: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: TEXT_DARK,
+        fontSize: type.body,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     stopRealTime: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: GREEN,
+        fontSize: type.caption,
+        fontWeight: weight.semibold,
+        color: colors.success,
         marginTop: 1,
     },
     stopName: {
         flex: 1,
-        fontSize: 14,
-        color: TEXT_DARK,
+        fontSize: type.small,
+        color: colors.textPrimary,
     },
     stopNameBold: {
         flex: 1,
-        fontSize: 16,
-        fontWeight: '700',
-        color: TEXT_DARK,
+        fontSize: type.body,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     stopNameMinor: {
         flex: 1,
-        fontSize: 14,
-        color: TEXT_GRAY,
+        fontSize: type.small,
+        color: colors.textSecondary,
     },
+    // Secondary datum, so it must not outrank the stop name beside it.
     stopPlatform: {
-        fontSize: 16,
-        color: TEXT_GRAY,
-        marginLeft: 8,
+        fontSize: type.small,
+        color: colors.textSecondary,
+        marginLeft: space.sm,
     },
 
     /* Expandable leg row */
     legRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 12,
+        paddingVertical: space.md,
         borderBottomWidth: 1,
-        borderBottomColor: BORDER,
+        borderBottomColor: colors.border,
     },
     legBadge: {
-        backgroundColor: LINE_BLUE,
-        borderRadius: 6,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        marginLeft: 14,
+        backgroundColor: colors.routeLine,
+        borderRadius: radius.sm,
+        paddingHorizontal: space.sm,
+        paddingVertical: space.xs,
+        marginLeft: space.base,
     },
     legBadgeText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 13,
+        color: colors.textOnBrand,
+        fontWeight: weight.bold,
+        fontSize: type.small,
     },
     legDirectionColumn: {
         flex: 1,
-        marginLeft: 10,
+        marginLeft: space.md,
     },
     legDirectionRow: {
         flexDirection: 'row',
         alignItems: 'center',
     },
-    legArrow: {
-        fontSize: 14,
-        color: TEXT_GRAY,
-        marginRight: 4,
-    },
     legDirectionText: {
-        fontSize: 14,
-        color: TEXT_GRAY,
+        fontSize: type.small,
+        color: colors.textSecondary,
         flexShrink: 1,
     },
     legDuration: {
-        fontSize: 13,
-        color: TEXT_GRAY,
+        fontSize: type.small,
+        color: colors.textSecondary,
     },
     legChevron: {
-        fontSize: 16,
-        color: TEXT_GRAY,
-        marginLeft: 8,
+        fontSize: type.body,
+        color: colors.textSecondary,
+        marginLeft: space.sm,
     },
 
     /* Intermediate stop */
     intermediateRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: space.md,
         borderBottomWidth: 1,
-        borderBottomColor: BORDER,
+        borderBottomColor: colors.border,
     },
 });

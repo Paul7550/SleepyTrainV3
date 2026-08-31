@@ -4,11 +4,12 @@ import {
     Text,
     StyleSheet,
     FlatList,
-    SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AlarmCard from '../components/AlarmCard';
-import {MaterialIcons} from "@expo/vector-icons";
-import {getAlarm, getJourneys, removeAlarm} from "../Saver";
+import {getAlarm, removeAlarm} from "../Saver";
+import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { colors, screenPadding, space, type, weight } from '../theme';
 
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL;
@@ -51,9 +52,11 @@ function formatTriggerDate(isoString) {
 export default function ActiveAlarmsScreen() {
     const [alarms, setAlarms] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const fetchTrips = async () => {
         try {
+            setError(null);
             const savedAlarms = await getAlarm();
             const query = savedAlarms
                 .map(alarm => `refreshTokens=${encodeURIComponent(alarm.token)}&stopIds=${alarm.stopId}`)
@@ -65,19 +68,22 @@ export default function ActiveAlarmsScreen() {
             const data = await response.json();
             let alarm = [];
             for(let i = 0; i < savedAlarms.length; i++) {
+                const details = data.alarms[i];
+                if (!details) continue;
                 alarm.push({
-                    "station": data.alarms[i].station,
+                    "station": details.station,
                     "active": savedAlarms[i].active,
                     "token": savedAlarms[i].token,
                     "sound": savedAlarms[i].ringTone,
-                    "triggerAt": data.alarms[i].arrivalTime,
-                    "delay": data.alarms[i].delay,
+                    "triggerAt": details.arrivalTime,
+                    "delay": details.delay,
                     "timeBevorStop":savedAlarms[i].timeBevorStop
                 })
             }
             setAlarms(alarm);
         } catch (e) {
             console.error(e)
+            setError(e.message)
         } finally {
             setLoading(false);
         }
@@ -109,14 +115,16 @@ export default function ActiveAlarmsScreen() {
                 )}
             </View>
 
-            {alarms.length === 0 ? (
-                <View style={styles.centerContent}>
-                    <MaterialIcons name={"alarm"} style={styles.emptyIcon}></MaterialIcons>
-                    <Text style={styles.emptyTitle}>No alarms yet</Text>
-                    <Text style={styles.emptySubtitle}>
-                        Set an alarm from a trip's detail screen and it will show up here.
-                    </Text>
-                </View>
+            {loading ? (
+                <LoadingState/>
+            ) : error ? (
+                <ErrorState title="Couldn't load your alarms"/>
+            ) : alarms.length === 0 ? (
+                <EmptyState
+                    icon="alarm"
+                    title="No alarms yet"
+                    subtitle="Set an alarm from a trip's detail screen and it will show up here."
+                />
             ) : (
                 <FlatList
                     data={alarms}
@@ -140,59 +148,34 @@ export default function ActiveAlarmsScreen() {
     );
 }
 
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     titleRow: {
         flexDirection: 'row',
         alignItems: 'baseline',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        paddingBottom: 8,
+        paddingHorizontal: screenPadding,
+        paddingTop: space.lg,
+        paddingBottom: space.sm,
     },
     title: {
-        fontSize: 26,
-        fontWeight: '700',
-        color: TEXT_DARK,
+        fontSize: type.display,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     subtitle: {
-        fontSize: 14,
-        color: TEXT_GRAY,
+        fontSize: type.small,
+        color: colors.textSecondary,
     },
     listContent: {
-        paddingHorizontal: 20,
-        paddingTop: 8,
-        paddingBottom: 32,
+        paddingHorizontal: screenPadding,
+        paddingTop: space.sm,
+        paddingBottom: space.huge,
     },
     separator: {
-        height: 14,
-    },
-    centerContent: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
-    },
-    emptyIcon: {
-        fontSize: 40,
-        marginBottom: 12,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: TEXT_DARK,
-        marginBottom: 6,
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: TEXT_GRAY,
-        textAlign: 'center',
-        lineHeight: 20,
+        height: space.base,
     },
 });

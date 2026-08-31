@@ -5,11 +5,14 @@ import {
     TextInput,
     TouchableOpacity,
     Platform,
-    StyleSheet, Modal, FlatList, SafeAreaView
+    StyleSheet, Modal, FlatList
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {MaterialIcons} from "@expo/vector-icons";
+import { LoadingState, EmptyState, ErrorState } from './StateViews';
+import { colors, radius, screenPadding, space, type, weight } from '../theme';
 const LOCATIONS_API_URL = `${process.env.EXPO_PUBLIC_API_URL}/locations?location=`;
 function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
     const [query, setQuery] = useState('');
@@ -97,7 +100,12 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
         >
             <SafeAreaView style={styles.modalContainer}>
                 <View style={styles.modalHeader}>
-                    <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Cancel"
+                    >
                         <Text style={styles.modalCancel}>Cancel</Text>
                     </TouchableOpacity>
                     <Text style={styles.modalTitle}>Search station</Text>
@@ -108,19 +116,30 @@ function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
                     <TextInput
                         style={styles.modalSearchInput}
                         placeholder="Search"
-                        placeholderTextColor="#9A9A9E"
+                        placeholderTextColor={colors.textSecondary}
                         value={query}
                         onChangeText={setQuery}
                         autoFocus
                     />
                 </View>
 
-                {loading && <Text style={styles.modalStatusText}>Loading…</Text>}
-                {error && <Text style={styles.modalStatusText}>Error: {error}</Text>}
-
                 <FlatList
-                    data={stationsByDistance}
+                    data={loading || error ? [] : stationsByDistance}
                     keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.modalListContent}
+                    ListEmptyComponent={
+                        loading ? (
+                            <LoadingState />
+                        ) : error ? (
+                            <ErrorState title="Couldn't load stations" />
+                        ) : (
+                            <EmptyState
+                                icon="search-off"
+                                title="No stations found"
+                                subtitle="Try a different search term."
+                            />
+                        )
+                    }
                     renderItem={({ item }) => (
                         <TouchableOpacity
                             style={styles.modalResultRow}
@@ -190,7 +209,7 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
                     </View>
 
                     <View style={styles.connectorRow}>
-                        <MaterialIcons name={"arrow-downward"} size={20} color={TEXT_DARK} />
+                        <MaterialIcons name={"arrow-downward"} size={20} color={colors.textPrimary} />
                     </View>
 
                     <View style={styles.fieldRow}>
@@ -213,8 +232,10 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
                     style={styles.swapButton}
                     onPress={handleSwap}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Swap origin and destination"
                 >
-                    <MaterialIcons name={"swap-vert"} size={28} color={GRAY} />
+                    <MaterialIcons name={"swap-vert"} size={28} color={colors.textSecondary} />
                 </TouchableOpacity>
             </View>
 
@@ -251,86 +272,79 @@ export default function RouteInputCard({setOrigin,setDestination,destination,ori
         </View>
     );
 }
-const RED = '#E8352B';
-const BLUE = '#2F6FED';
-const LINE_BLUE = '#2F5FC7';
-const GREEN = '#2E9B4F';
-const GRAY = '#9A9A9E';
-const BORDER = '#E4E4E7';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-
 const styles = StyleSheet.create({
-    modalStatusText: {
-        fontSize: 14,
-        color: TEXT_GRAY,
-        paddingHorizontal: 18,
-        paddingTop: 14,
-    },
     inputPlaceholder: {
-        fontSize: 16,
-        color: '#9A9A9E',
+        fontSize: type.body,
+        color: colors.textSecondary,
         padding: 0,
     },
 
-    /* Station search modal */
+    /* Station search modal -- chrome matches the option pickers in Alarmmodal */
     modalContainer: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     modalHeader: {
-        backgroundColor:RED,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 18,
-        paddingVertical: 14,
+        paddingHorizontal: screenPadding,
+        paddingVertical: space.base,
         borderBottomWidth: 1,
-        borderBottomColor: BORDER,
+        borderBottomColor: colors.border,
     },
     modalCancel: {
-        fontSize: 16,
-        color: BLUE,
+        fontSize: type.body,
+        color: colors.brand,
     },
     modalCancelSpacer: {
         width: 50,
     },
     modalTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: '#FFFFFF',
+        fontSize: type.body,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     modalSearchBox: {
-        marginHorizontal: 18,
-        marginTop: 14,
+        marginHorizontal: screenPadding,
+        marginTop: space.base,
         borderWidth: 1,
-        borderColor: BORDER,
-        borderRadius: 14,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        paddingHorizontal: space.lg,
+        paddingVertical: space.md,
     },
     modalSearchInput: {
-        fontSize: 16,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
         padding: 0,
     },
+    modalListContent: {
+        flexGrow: 1,
+    },
     modalResultRow: {
-        paddingHorizontal: 18,
-        paddingVertical: 16,
+        paddingHorizontal: screenPadding,
+        paddingVertical: space.lg,
     },
     modalResultText: {
-        fontSize: 16,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
+    },
+    modalResultLocation: {
+        fontSize: type.small,
+        color: colors.textSecondary,
+        marginTop: space.xs,
     },
     modalSeparator: {
         height: 1,
-        backgroundColor: BORDER,
-        marginLeft: 18,
+        backgroundColor: colors.border,
+        marginLeft: screenPadding,
     },
+
     /* Route input */
     inputContainer: {
-        paddingHorizontal: 18,
-        paddingTop: 9,
+        paddingHorizontal: screenPadding,
+        paddingTop: space.sm,
     },
     row: {
         flexDirection: 'row',
@@ -349,84 +363,66 @@ const styles = StyleSheet.create({
         borderRadius: 13,
         alignItems: 'center',
         justifyContent: 'center',
-        marginRight: 10,
+        marginRight: space.md,
     },
     badgeRed: {
-        backgroundColor: RED,
+        backgroundColor: colors.brand,
     },
     badgeGray: {
-        backgroundColor: GRAY,
+        backgroundColor: colors.textSecondary,
     },
     badgeText: {
-        color: '#FFFFFF',
-        fontWeight: '700',
-        fontSize: 12,
+        color: colors.textOnBrand,
+        fontWeight: weight.bold,
+        fontSize: type.caption,
     },
     inputBox: {
         flex: 1,
         borderWidth: 1,
-        borderColor: BORDER,
-        borderRadius: 14,
-        paddingHorizontal: 16,
-        paddingVertical: 12,
+        borderColor: colors.border,
+        borderRadius: radius.md,
+        paddingHorizontal: space.lg,
+        paddingVertical: space.md,
     },
     input: {
-        fontSize: 16,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
         padding: 0,
     },
     connectorRow: {
         flexDirection: 'row',
-        height: 16,
-    },
-    connectorSpacer: {
-        width: 13,
-        alignItems: 'center',
-    },
-    arrow: {
-        fontSize: 16,
-        color: TEXT_DARK,
-        marginLeft: 6,
+        height: space.lg,
     },
     swapButton: {
         width: 34,
         height: 34,
         alignItems: 'center',
         justifyContent: 'center',
-        marginLeft: 10,
-    },
-    swapIcon: {
-        fontSize: 22,
-        color: GRAY,
-        fontWeight: '600',
+        marginLeft: space.md,
     },
     valueBox: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 12,
+        paddingVertical: space.md,
         maxWidth: 200,
     },
     valueText: {
-        fontSize: 16,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
     },
     valuePlaceholder: {
-        fontSize: 16,
-        color: '#9A9A9E',
-    },
-    calendarIcon: {
-        fontSize: 16,
-        marginLeft: 12,
+        fontSize: type.body,
+        color: colors.textSecondary,
     },
     doneButton: {
         alignSelf: 'flex-end',
-        paddingVertical: 8,
-        paddingHorizontal: 16,
+        paddingVertical: space.sm,
+        paddingHorizontal: space.lg,
     },
     doneButtonText: {
-        color: BLUE,
-        fontWeight: '600',
-        fontSize: 15,
+        color: colors.brand,
+        fontWeight: weight.semibold,
+        fontSize: type.body,
     },
 });

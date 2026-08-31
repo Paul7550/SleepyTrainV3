@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import {MaterialIcons} from "@expo/vector-icons";
+import { card, colors, space, type, weight } from '../theme';
 
 /**
  * AlarmCard
@@ -47,14 +48,17 @@ export default function AlarmCard({
                 <Switch
                     value={active}
                     onValueChange={onToggle}
-                    trackColor={{ false: '#D9D9DE', true: '#F3A29D' }}
-                    thumbColor={'#FFFFFF'}
-                    ios_backgroundColor="#D9D9DE"
+                    trackColor={{ false: colors.borderStrong, true: colors.brandTintFg }}
+                    thumbColor={colors.surface}
+                    ios_backgroundColor={colors.borderStrong}
+                    accessibilityLabel={`Alarm for ${station}`}
                 />
                 <TouchableOpacity
                     style={styles.deleteButton}
                     onPress={onDelete}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove alarm for ${station}`}
                 >
                     <Text style={styles.deleteText}>Remove</Text>
                 </TouchableOpacity>
@@ -63,77 +67,64 @@ export default function AlarmCard({
     );
 }
 
-const RED = '#E8352B';
-const BORDER = '#E4E4E7';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-
 const styles = StyleSheet.create({
     card: {
+        ...card,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        borderWidth: 1,
-        borderColor: BORDER,
-        paddingVertical: 16,
-        paddingHorizontal: 18,
     },
     cardInactive: {
         opacity: 0.55,
     },
     leftColumn: {
         flex: 1,
-        marginRight: 12,
+        marginRight: space.md,
     },
     timeRow: {
         flexDirection: 'row',
         alignItems: 'baseline',
     },
     time: {
-        fontSize: 26,
-        fontWeight: '700',
-        color: TEXT_DARK,
+        fontSize: type.display,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     date: {
-        fontSize: 13,
-        color: TEXT_GRAY,
-        marginLeft: 8,
+        fontSize: type.small,
+        color: colors.textSecondary,
+        marginLeft: space.sm,
     },
     stationRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 6,
+        marginTop: space.sm,
     },
     bellIconWrap: {
-        marginRight: 6,
-    },
-    bellIcon: {
-        fontSize: 13,
+        marginRight: space.sm,
     },
     station: {
-        fontSize: 15,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
         flexShrink: 1,
     },
     sound: {
-        fontSize: 13,
-        color: TEXT_GRAY,
-        marginTop: 4,
+        fontSize: type.small,
+        color: colors.textSecondary,
+        marginTop: space.xs,
     },
     dimmedText: {
-        color: TEXT_GRAY,
+        color: colors.textSecondary,
     },
     rightColumn: {
         alignItems: 'center',
     },
     deleteButton: {
-        marginTop: 10,
+        marginTop: space.md,
     },
     deleteText: {
-        fontSize: 12,
-        color: RED,
-        fontWeight: '600',
+        fontSize: type.caption,
+        color: colors.brand,
+        fontWeight: weight.semibold,
     },
 });

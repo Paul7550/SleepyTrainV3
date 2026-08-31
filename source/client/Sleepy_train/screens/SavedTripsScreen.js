@@ -4,15 +4,15 @@ import {
     Text,
     StyleSheet,
     FlatList,
-    ActivityIndicator,
     RefreshControl,
-    SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import SavedTripCard from '../components/SavedTripCard';
 import {getJourneys} from "../Saver";
-import {MaterialIcons,MaterialCommunityIcons} from "@expo/vector-icons";
+import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { colors, screenPadding, space, type, weight } from '../theme';
 
 const API_BASE_URL =process.env.EXPO_PUBLIC_API_URL;
 
@@ -75,23 +75,15 @@ export default function SavedTripsScreen() {
             </View>
 
             {loading ? (
-                <View style={styles.centerContent}>
-                    <ActivityIndicator size="large" color="#E8352B" />
-                </View>
+                <LoadingState />
             ) : error ? (
-                <View style={styles.centerContent}>
-                    <Text style={styles.errorIcon}>⚠️</Text>
-                    <Text style={styles.errorTitle}>Couldn't load your trips</Text>
-                    <Text style={styles.errorSubtitle}>{error}</Text>
-                </View>
+                <ErrorState title="Couldn't load your trips" />
             ) : trips.length === 0 ? (
-                <View style={styles.centerContent}>
-                    <MaterialCommunityIcons name={"train-bus"} size={60}></MaterialCommunityIcons>
-                    <Text style={styles.emptyTitle}>No saved trips yet</Text>
-                    <Text style={styles.emptySubtitle}>
-                        Trips you save from your search results will show up here.
-                    </Text>
-                </View>
+                <EmptyState
+                    icon="bookmark-border"
+                    title="No saved trips yet"
+                    subtitle="Trips you save from your search results will show up here."
+                />
             ) : (
                 <FlatList
                     data={trips}
@@ -105,7 +97,7 @@ export default function SavedTripsScreen() {
                     )}
                     ItemSeparatorComponent={() => <View style={styles.separator} />}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#E8352B" />
+                        <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.brand} />
                     }
                 />
             )}
@@ -113,74 +105,34 @@ export default function SavedTripsScreen() {
     );
 }
 
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     titleRow: {
         flexDirection: 'row',
         alignItems: 'baseline',
         justifyContent: 'space-between',
-        paddingHorizontal: 20,
-        paddingTop: 16,
-        paddingBottom: 8,
+        paddingHorizontal: screenPadding,
+        paddingTop: space.lg,
+        paddingBottom: space.sm,
     },
     title: {
-        fontSize: 26,
-        fontWeight: '700',
-        color: TEXT_DARK,
+        fontSize: type.display,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     subtitle: {
-        fontSize: 14,
-        color: TEXT_GRAY,
+        fontSize: type.small,
+        color: colors.textSecondary,
     },
     listContent: {
-        paddingHorizontal: 20,
-        paddingTop: 8,
-        paddingBottom: 32,
+        paddingHorizontal: screenPadding,
+        paddingTop: space.sm,
+        paddingBottom: space.huge,
     },
     separator: {
-        height: 14,
-    },
-    centerContent: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
-    },
-    emptyIcon: {
-        fontSize: 40,
-        marginBottom: 12,
-    },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: TEXT_DARK,
-        marginBottom: 6,
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: TEXT_GRAY,
-        textAlign: 'center',
-        lineHeight: 20,
-    },
-    errorIcon: {
-        fontSize: 32,
-        marginBottom: 12,
-    },
-    errorTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: TEXT_DARK,
-        marginBottom: 6,
-    },
-    errorSubtitle: {
-        fontSize: 14,
-        color: TEXT_GRAY,
-        textAlign: 'center',
+        height: space.base,
     },
 });

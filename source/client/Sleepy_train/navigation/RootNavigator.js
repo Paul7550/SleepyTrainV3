@@ -2,18 +2,18 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SearchScreen from '../screens/SearchScreen';
 import TripDetailScreen from '../screens/TripDetailScreen';
 import { StyleSheet, View} from "react-native";
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {StatusBar} from "expo-status-bar";
 import Header from "../components/Header";
 import SavedTripsScreen from "../screens/SavedTripsScreen";
 import ActiveAlarmsScreen from "../screens/AlarmScreen";
+import { colors } from '../theme';
 
 const Stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
     return (
         <View style={styles.screen}>
-            <StatusBar barStyle="light-content" backgroundColor={RED}/>
+            <StatusBar style="light"/>
         <Stack.Navigator screenOptions={{ header:()=> <Header/>}}>
             <Stack.Screen name="Search" component={SearchScreen} />
             <Stack.Screen name="TripDetail" component={TripDetailScreen} />
@@ -23,14 +23,10 @@ export default function RootNavigator() {
         </View>
     );
 }
-const RED = '#E8352B';
 
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
-    headerArea: {
-        backgroundColor: RED,
-    },
-})
+});

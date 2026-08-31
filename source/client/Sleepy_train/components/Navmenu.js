@@ -7,9 +7,10 @@ import {
     Modal,
     Animated,
     Dimensions,
-    Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
+import { colors, radius, space, type, weight } from '../theme';
 
 /**
  * NavMenu
@@ -24,6 +25,7 @@ import {MaterialCommunityIcons, MaterialIcons} from "@expo/vector-icons";
  *  - onSelectTab: (tab: 'search' | 'saved') => void
  */
 export default function NavMenu({ visible, onClose, activeTab, onSelectTab }) {
+    const insets = useSafeAreaInsets();
     const screenWidth = Dimensions.get('window').width;
     const menuWidth = Math.min(280, screenWidth * 0.75);
 
@@ -73,13 +75,19 @@ export default function NavMenu({ visible, onClose, activeTab, onSelectTab }) {
     return (
         <Modal visible={visible} animationType="none" transparent onRequestClose={handleClose}>
             <Animated.View style={[styles.backdrop, { opacity: backdropOpacity }]}>
-                <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={handleClose} />
+                <TouchableOpacity
+                    style={StyleSheet.absoluteFill}
+                    activeOpacity={1}
+                    onPress={handleClose}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close menu"
+                />
             </Animated.View>
 
             <Animated.View
                 style={[
                     styles.menu,
-                    { width: menuWidth, transform: [{ translateX: menuTranslateX }] },
+                    { width: menuWidth, paddingTop: insets.top + space.xxl, transform: [{ translateX: menuTranslateX }] },
                 ]}
             >
                 <View style={styles.connectorRow}>
@@ -126,28 +134,22 @@ export default function NavMenu({ visible, onClose, activeTab, onSelectTab }) {
     );
 }
 
-const RED = '#E8352B';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-const BORDER = '#E4E4E7';
-
 const styles = StyleSheet.create({
     connectorRow: {
         flexDirection: 'row',
-        height: 20,
+        marginBottom: space.sm,
     },
     backdrop: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0,0,0,0.3)',
+        backgroundColor: colors.scrim,
     },
     menu: {
         position: 'absolute',
         left: 0,
         top: 0,
         bottom: 0,
-        backgroundColor: '#FFFFFF',
-        paddingTop: Platform.OS === 'ios' ? 60 : 40,
-        paddingHorizontal: 20,
+        backgroundColor: colors.surface,
+        paddingHorizontal: space.xxl,
         shadowColor: '#000',
         shadowOffset: { width: 2, height: 0 },
         shadowOpacity: 0.15,
@@ -155,33 +157,33 @@ const styles = StyleSheet.create({
         elevation: 8,
     },
     menuTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: TEXT_DARK,
-        marginBottom: 24,
+        fontSize: type.heading,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
+        marginBottom: space.xxxl,
     },
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 12,
-        borderRadius: 12,
-        marginBottom: 4,
+        paddingVertical: space.base,
+        paddingHorizontal: space.md,
+        borderRadius: radius.md,
+        marginBottom: space.xs,
     },
     menuItemActive: {
-        backgroundColor: '#FDEAE9',
+        backgroundColor: colors.brandTintBg,
     },
     menuItemIcon: {
-        fontSize: 18,
-        marginRight: 14,
+        fontSize: type.title,
+        marginRight: space.base,
     },
     menuItemText: {
-        fontSize: 16,
-        color: TEXT_GRAY,
-        fontWeight: '500',
+        fontSize: type.body,
+        color: colors.textSecondary,
+        fontWeight: weight.medium,
     },
     menuItemTextActive: {
-        color: RED,
-        fontWeight: '700',
+        color: colors.brand,
+        fontWeight: weight.bold,
     },
 });

@@ -25,7 +25,7 @@ export async function getLatestConnections() {
 export async function getJourneys(){
     try {
         const jsonValue = await AsyncStorage.getItem('journeys');
-        return JSON.parse(jsonValue)
+        return jsonValue != null ? JSON.parse(jsonValue) : [];
     } catch (e) {
         return []
     }

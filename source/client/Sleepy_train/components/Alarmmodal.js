@@ -9,17 +9,24 @@ import {
     Platform,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, radius, space, type, weight } from '../theme';
 
 /* -------------------------------------------------------------------------- */
 /*  Generic option picker (used for both "Train Station" and "Timer Sound")  */
 /* -------------------------------------------------------------------------- */
 
-function OptionPickerModal({ visible, title, options, selected, onSelect, onClose }) {
+function OptionPickerModal({ visible, title, options, selected, onSelect, onClose, labelOf = (item) => item }) {
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
             <View style={styles.optionModalContainer}>
                 <View style={styles.optionModalHeader}>
-                    <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Cancel"
+                    >
                         <Text style={styles.optionModalCancel}>Cancel</Text>
                     </TouchableOpacity>
                     <Text style={styles.optionModalTitle}>{title}</Text>
@@ -29,8 +36,8 @@ function OptionPickerModal({ visible, title, options, selected, onSelect, onClos
                 <FlatList
                     data={options}
                     renderItem={({ item }) => {
-                        const label = item.tripStation;
-                        const isSelected = label === selected;
+                        const label = labelOf(item);
+                        const isSelected = item === selected;
                         return (
                             <TouchableOpacity
                                 style={styles.optionRow}
@@ -38,6 +45,9 @@ function OptionPickerModal({ visible, title, options, selected, onSelect, onClos
                                     onSelect(item);
                                     onClose();
                                 }}
+                                accessibilityRole="button"
+                                accessibilityState={{ selected: isSelected }}
+                                accessibilityLabel={label}
                             >
                                 <Text style={styles.optionRowText}>{label}</Text>
                                 {isSelected && <Text style={styles.optionRowCheck}>✓</Text>}
@@ -130,6 +140,7 @@ export default function AlarmModal({
                                        initialStation,
                                        initialSound,
                                    }) {
+    const insets = useSafeAreaInsets();
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(45);
     const [seconds, setSeconds] = useState(30);
@@ -146,7 +157,7 @@ export default function AlarmModal({
     return (
         <Modal visible={visible} animationType="none" transparent onRequestClose={onClose}>
             <View style={styles.backdrop} >
-                <View style={styles.sheet}>
+                <View style={[styles.sheet, { paddingBottom: insets.bottom + space.xxl }]}>
                     {/* Header */}
                     <View style={styles.header}>
                         <Text style={styles.headerTitle}>Alarm</Text>
@@ -154,6 +165,8 @@ export default function AlarmModal({
                             style={styles.confirmButton}
                             onPress={handleConfirm}
                             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            accessibilityRole="button"
+                            accessibilityLabel="Set alarm"
                         >
                             <Text style={styles.confirmIcon}>✓</Text>
                         </TouchableOpacity>
@@ -178,7 +191,7 @@ export default function AlarmModal({
                         >
                             <Text style={styles.settingLabel}>Train Station</Text>
                             <View style={styles.settingValueRow}>
-                                <Text style={styles.settingValue}>{station.tripStation}</Text>
+                                <Text style={styles.settingValue}>{station?.tripStation}</Text>
                                 <Text style={styles.settingChevron}>›</Text>
                             </View>
                         </TouchableOpacity>
@@ -204,6 +217,7 @@ export default function AlarmModal({
                 options={stations}
                 selected={station}
                 onSelect={setStation}
+                labelOf={(item) => item.tripStation}
                 onClose={() => setShowStationPicker(false)}
             />
 
@@ -223,24 +237,18 @@ export default function AlarmModal({
 /*  Styles                                                                    */
 /* -------------------------------------------------------------------------- */
 
-const RED = '#E8352B';
-const BORDER = '#E4E4E7';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-
 const styles = StyleSheet.create({
     backdrop: {
         flex: 1,
-        backgroundColor:'rgba(0,0,0,0.3)',
+        backgroundColor: colors.scrim,
         justifyContent: 'flex-end',
     },
     sheet: {
-        backgroundColor: '#FFFFFF',
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        paddingHorizontal: 20,
-        paddingTop: 20,
-        paddingBottom: Platform.OS === 'ios' ? 34 : 20,
+        backgroundColor: colors.surface,
+        borderTopLeftRadius: space.xxxl,
+        borderTopRightRadius: space.xxxl,
+        paddingHorizontal: space.xxl,
+        paddingTop: space.xxl,
     },
 
     /* Header */
@@ -250,33 +258,33 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     headerTitle: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: TEXT_DARK,
+        fontSize: type.subdisplay,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     confirmButton: {
         position: 'absolute',
         right: 0,
         top: -6,
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: RED,
+        width: space.max,
+        height: space.max,
+        borderRadius: radius.xl,
+        backgroundColor: colors.brand,
         alignItems: 'center',
         justifyContent: 'center',
     },
     confirmIcon: {
-        color: '#FFFFFF',
-        fontSize: 18,
-        fontWeight: '700',
+        color: colors.textOnBrand,
+        fontSize: type.title,
+        fontWeight: weight.bold,
     },
 
     /* Time wheel */
     wheelRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginTop: 10,
-        marginBottom: 10
+        marginTop: space.md,
+        marginBottom: space.md,
     },
     wheelColumn: {
         flex: 1,
@@ -287,92 +295,87 @@ const styles = StyleSheet.create({
         height: Platform.OS === 'ios' ? 160 : 50,
     },
     wheelItem: {
-        fontSize: 22,
-        color: TEXT_DARK,
-    },
-    wheelUnitLabel: {
-        fontSize: 13,
-        color: TEXT_GRAY,
-        marginTop: -8,
+        fontSize: type.subdisplay,
+        color: colors.textPrimary,
     },
 
     /* Settings rows */
     settingsList: {
-        marginTop: 20,
+        marginTop: space.xxl,
         borderTopWidth: 1,
-        borderTopColor: BORDER,
+        borderTopColor: colors.border,
     },
     settingRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 16,
+        paddingVertical: space.lg,
         borderBottomWidth: 1,
-        borderBottomColor: BORDER,
+        borderBottomColor: colors.border,
     },
     settingLabel: {
-        fontSize: 16,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
     },
     settingValueRow: {
         flexDirection: 'row',
         alignItems: 'center',
     },
     settingValue: {
-        fontSize: 16,
-        color: TEXT_GRAY,
-        marginRight: 4,
+        fontSize: type.body,
+        color: colors.textSecondary,
+        marginRight: space.xs,
     },
     settingChevron: {
-        fontSize: 18,
-        color: TEXT_GRAY,
+        fontSize: type.title,
+        color: colors.textSecondary,
     },
 
     /* Option picker modal (Train Station / Timer Sound) */
     optionModalContainer: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     optionModalHeader: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 18,
-        paddingVertical: 14,
+        paddingHorizontal: space.xl,
+        paddingVertical: space.base,
         borderBottomWidth: 1,
-        borderBottomColor: BORDER,
+        borderBottomColor: colors.border,
     },
     optionModalCancel: {
-        fontSize: 16,
-        color: RED,
+        fontSize: type.body,
+        color: colors.brand,
     },
     optionModalCancelSpacer: {
         width: 50,
     },
     optionModalTitle: {
-        fontSize: 17,
-        fontWeight: '700',
-        color: TEXT_DARK,
+        fontSize: type.body,
+        fontWeight: weight.bold,
+        color: colors.textPrimary,
     },
     optionRow: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 18,
-        paddingVertical: 16,
+        paddingHorizontal: space.xl,
+        paddingVertical: space.lg,
     },
     optionRowText: {
-        fontSize: 16,
-        color: TEXT_DARK,
+        fontSize: type.body,
+        color: colors.textPrimary,
     },
     optionRowCheck: {
-        fontSize: 16,
-        color: RED,
-        fontWeight: '700',
+        fontSize: type.body,
+        color: colors.brand,
+        fontWeight: weight.bold,
     },
     optionSeparator: {
         height: 1,
-        backgroundColor: BORDER,
-        marginLeft: 18,
+        backgroundColor: colors.border,
+        marginLeft: space.xl,
     },
 });

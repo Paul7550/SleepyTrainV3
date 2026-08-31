@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useNavigationState } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import NavMenu from './Navmenu';
 import {MaterialIcons} from "@expo/vector-icons";
+import { colors, space, type, weight } from '../theme';
 
-const RED = '#E8352B';
-const BORDER = '#E4E4E7';
+const ICON_SLOT = 28;
 
 export default function Header() {
     const navigation = useNavigation();
+    const insets = useSafeAreaInsets();
     const [showMenu, setShowMenu] = useState(false);
 
     const activeRouteName = useNavigationState((state) => {
@@ -40,23 +42,26 @@ export default function Header() {
     };
 
     return (
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + space.sm }]}>
             <TouchableOpacity
-                style={styles.menuButton}
+                style={styles.iconSlot}
                 onPress={() => setShowMenu(true)}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                accessibilityRole="button"
+                accessibilityLabel="Open menu"
             >
-                <MaterialIcons name={"menu"} size={24} color={BORDER}></MaterialIcons>
+                <MaterialIcons name={"menu"} size={24} color={colors.textOnBrand}></MaterialIcons>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Sleepy Train</Text>
             <TouchableOpacity
-                style={styles.alarm}
+                style={styles.iconSlot}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                 onPress={()=>handleSelectTab('alarm')}
+                accessibilityRole="button"
+                accessibilityLabel="Alarms"
             >
-                <MaterialIcons name={"alarm"} size={24} color={BORDER} ></MaterialIcons>
+                <MaterialIcons name={"alarm"} size={24} color={colors.textOnBrand} ></MaterialIcons>
             </TouchableOpacity>
-            <View style={styles.menuButtonSpacer} />
 
             <NavMenu
                 visible={showMenu}
@@ -70,33 +75,22 @@ export default function Header() {
 
 const styles = StyleSheet.create({
     header: {
-        backgroundColor: RED,
+        backgroundColor: colors.brand,
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 18,
-        paddingTop: Platform.OS === 'android' ? 18 : 40,
-        paddingBottom: 18,
+        paddingHorizontal: space.xl,
+        paddingBottom: space.xl,
     },
-    alarm:{
-        justifyContent:'space-between',
-    },
-    menuButton: {
-        width: 28,
-        justifyContent: 'space-between',
-    },
-    menuButtonSpacer: {
-        width: 28,
-    },
-    menuLine: {
-        height: 3,
-        borderRadius: 2,
-        backgroundColor: '#FFFFFF',
-        width: '100%',
+    // Equal-width slots on both sides keep the title optically centred.
+    iconSlot: {
+        width: ICON_SLOT,
+        alignItems: 'center',
     },
     headerTitle: {
-        color: '#FFFFFF',
-        fontSize: 22,
-        fontWeight: '700',
+        flex: 1,
+        textAlign: 'center',
+        color: colors.textOnBrand,
+        fontSize: type.subdisplay,
+        fontWeight: weight.bold,
     },
 });

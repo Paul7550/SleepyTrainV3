@@ -1,19 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import {
-    ActivityIndicator,
-    LayoutAnimation,
-    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import JourneyCard from '../components/JourneyCard';
 import RouteInputCard from '../components/RouteInputCard';
 import {MaterialIcons} from '@expo/vector-icons';
 import {getLatestConnections, saveLatestConnections} from "../Saver";
 import ConnectionCard from "../components/LatestConnections";
+import { LoadingState, EmptyState, ErrorState } from '../components/StateViews';
+import { colors, radius, screenPadding, space, type, weight } from '../theme';
 
 
 export default function SearchScreen({navigation}) {
@@ -27,6 +27,9 @@ export default function SearchScreen({navigation}) {
     const [earlierRef, setEarlierRef] = useState('')
     const [latestConnections, setLatestConnections] = useState([])
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
+    const [hasSearched, setHasSearched] = useState(false)
+    const insets = useSafeAreaInsets();
 
     useEffect(() => {
         const getLatestCon = async () => {
@@ -45,6 +48,7 @@ export default function SearchScreen({navigation}) {
     const handleSearch = async () => {
         if (fromValue != '' && toValue != '') {
             setLoading(true)
+            setError(null)
             const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
             try {        console.log(process.env.EXPO_BASE_URL)
 
@@ -59,9 +63,12 @@ export default function SearchScreen({navigation}) {
                 setEarlierRef(res.earlierRef);
                 setLaterRef(res.laterRef);
                 await saveLatestConnections(fromValue,origin,toValue,destination,false)
+                setHasSearched(true)
+            } catch (e) {
+                console.error(e.message);
+                setError(e.message);
+            } finally {
                 setLoading(false)
-            } catch (error) {
-                console.error(error.message);
             }
         }
     };
@@ -116,39 +123,52 @@ export default function SearchScreen({navigation}) {
                 <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.85}>
                     <Text style={styles.searchButtonText}>Search</Text>
                 </TouchableOpacity>
-                {loading ?
-                    <View style={styles.centerContent}>
-                        <ActivityIndicator size="large" color="#E8352B"/>
-                    </View> :
+                {loading ? (
+                    <LoadingState/>
+                ) : error ? (
+                    <ErrorState title="Couldn't load connections"/>
+                ) : (
                     <ScrollView style={styles.resultsList} contentContainerStyle={styles.resultsListContent}>
                         {results.length> 0 ?
                             results.map((result, index) => (
-                            <JourneyCard {...result} handelSelectTrip={handleSelectTrip} key={index}/>
+                            <JourneyCard {...result} handelSelectTrip={handleSelectTrip} key={index} first={index === 0}/>
                             ))
+                            : hasSearched ?
+                            <EmptyState
+                                icon="train"
+                                title="No connections found"
+                                subtitle="Try a different departure time or stations."
+                            />
                             :
                             latestConnections.map((c,index)=>(
-                                <ConnectionCard loadLatestConnections={loadLatestConnections} fav={c.favorite} key={index} from={c.from} to={c.to} destination={c.destination} origin={c.origin}></ConnectionCard>
+                                <ConnectionCard loadLatestConnections={loadLatestConnections} fav={c.favorite} key={index} first={index === 0} from={c.from} to={c.to} destination={c.destination} origin={c.origin}></ConnectionCard>
                             )).sort((a,b)=>Number(b.favorite) - Number(a.favorite))
                         }
                     </ScrollView>
-                }
+                )}
             </View>
             {results.length > 0?
-                <View style={styles.pagination}>
+                <View style={[styles.pagination, { paddingBottom: insets.bottom + space.md }]}>
                     <TouchableOpacity
                         style={styles.pageButton}
                         onPress={() => loadEarlierConnections()}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Earlier connections"
                     >
                         <Text style={styles.pageButtonText}><MaterialIcons name={"arrow-left"} size={20}
-                                                                           color={TEXT_DARK}/> Previous</Text>
+                                                                           color={colors.textPrimary}/> Previous</Text>
 
                     </TouchableOpacity>
                     <TouchableOpacity
                         style={styles.pageButton}
                         onPress={() => loadLaterConnections()}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityRole="button"
+                        accessibilityLabel="Later connections"
                     >
                         <Text style={styles.pageButtonText}>Next <MaterialIcons name={"arrow-right"} size={20}
-                                                                                color={TEXT_DARK}/> </Text>
+                                                                                color={colors.textPrimary}/> </Text>
 
                     </TouchableOpacity>
                 </View>:null
@@ -157,64 +177,48 @@ export default function SearchScreen({navigation}) {
     );
 }
 
-const RED = '#E8352B';
-const BORDER = '#E4E4E7';
-const TEXT_DARK = '#1A1A1A';
-
 const styles = StyleSheet.create({
-    centerContent: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingHorizontal: 40,
-    },
-    screen: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    headerArea: {
-        backgroundColor: RED,
-    },
     content: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
     },
     resultsList: {
         flex: 1,
-        marginTop: 18,
+        marginTop: space.xl,
     },
     resultsListContent: {
-        paddingBottom: 24,
+        flexGrow: 1,
+        paddingHorizontal: screenPadding,
+        paddingBottom: space.xxxl,
     },
     searchButton: {
-        backgroundColor: RED,
-        marginHorizontal: 18,
-        marginTop: 10,
-        borderRadius: 14,
-        paddingVertical: 12,
+        backgroundColor: colors.brand,
+        marginHorizontal: screenPadding,
+        marginTop: space.md,
+        borderRadius: radius.md,
+        paddingVertical: space.md,
         alignItems: 'center',
     },
     searchButtonText: {
-        color: '#FFFFFF',
-        fontSize: 17,
-        fontWeight: '700',
+        color: colors.textOnBrand,
+        fontSize: type.body,
+        fontWeight: weight.bold,
     },
     pagination: {
-        backgroundColor: '#FFFFFF',
+        backgroundColor: colors.surface,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingHorizontal: 24,
-        paddingTop: 12,
+        paddingHorizontal: screenPadding,
+        paddingTop: space.md,
         borderTopWidth: 1,
-        borderTopColor: BORDER,
-        paddingBottom: 20
+        borderTopColor: colors.border,
     },
     pageButton: {
-        paddingVertical: 6,
+        paddingVertical: space.sm,
     },
     pageButtonText: {
-        fontSize: 16,
-        color: TEXT_DARK,
-        fontWeight: '500',
+        fontSize: type.body,
+        color: colors.textPrimary,
+        fontWeight: weight.medium,
     },
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {MaterialIcons} from "@expo/vector-icons";
+import { colors, listDivider, listRow, radius, space, type, weight } from '../theme';
 
 
 
@@ -13,7 +14,7 @@ export default function JourneyCard({
   legs  =[{
     name
   }],
-  refreshToken, handelSelectTrip
+  refreshToken, handelSelectTrip, first = false
 })
 {
   const Departure = new Date(plannedDeparture)
@@ -33,12 +34,15 @@ export default function JourneyCard({
   }
 
   return (
-    <TouchableOpacity style={JourneyCardStyles.card} onPress={() => loadConnectionDetails(refreshToken)}>
+    <TouchableOpacity
+      style={[JourneyCardStyles.row, !first && JourneyCardStyles.divider]}
+      onPress={() => loadConnectionDetails(refreshToken)}
+    >
       <View style={JourneyCardStyles.topRow}>
         <View>
           <View style={JourneyCardStyles.timeRow}>
             <Text style={JourneyCardStyles.timeText}>{Departure.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
-            <MaterialIcons name={"arrow-forward"} size={20} color={TEXT_DARK}></MaterialIcons>
+            <MaterialIcons name={"arrow-forward"} size={20} color={colors.textPrimary}></MaterialIcons>
             <Text style={JourneyCardStyles.timeText}>{Arrival.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</Text>
           </View>
           <View style={JourneyCardStyles.subTimeRow}>
@@ -80,38 +84,24 @@ function ClockIcon() {
   );
 }
 
-const BLUE = '#2F6FED';
-const GREEN = '#2E9B4F';
-const TEXT_DARK = '#1A1A1A';
-const TEXT_GRAY = '#8A8A8E';
-const BORDER = '#E4E4E7';
-const LINE_BLUE = '#2F5FC7';
-
-
 const JourneyCardStyles = StyleSheet.create({
   lineBadge: {
-    backgroundColor: LINE_BLUE,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    backgroundColor: colors.routeLine,
+    borderRadius: radius.sm,
+    paddingHorizontal: space.sm,
+    paddingVertical: space.xs,
     zIndex: 2,
   },
   lineBadgeText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
+    color: colors.textOnBrand,
+    fontWeight: weight.bold,
+    fontSize: type.small,
   },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: BORDER,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+  row: {
+    ...listRow,
+  },
+  divider: {
+    ...listDivider,
   },
   topRow: {
     flexDirection: 'row',
@@ -123,86 +113,64 @@ const JourneyCardStyles = StyleSheet.create({
     alignItems: 'center',
   },
   timeText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: TEXT_DARK,
-  },
-  arrow: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: TEXT_DARK,
+    fontSize: type.heading,
+    fontWeight: weight.bold,
+    color: colors.textPrimary,
   },
   subTimeRow: {
     flexDirection: 'row',
     marginTop: 2,
   },
   subTimeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: GREEN,
+    fontSize: type.small,
+    fontWeight: weight.semibold,
+    color: colors.success,
     width: 46,
   },
   subTimeSpacer: {
-    width: 20,
+    width: space.xxl,
   },
   trackText: {
-    fontSize: 14,
-    color: TEXT_GRAY,
-    fontWeight: '500',
+    fontSize: type.small,
+    color: colors.textSecondary,
+    fontWeight: weight.medium,
     marginTop: 2,
   },
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 18,
+    marginTop: space.xl,
   },
   lineRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  badge: {
-    backgroundColor: BLUE,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    zIndex: 2,
-  },
-  badgeText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
+  // Matches the route spine colour used in TripDetailScreen.
   connectorLine: {
     height: 3,
-    backgroundColor: BLUE,
+    backgroundColor: colors.routeLine,
     flex: 1,
     marginHorizontal: -2,
-  },
-  tailLine: {
-    height: 3,
-    width: 18,
-    backgroundColor: BLUE,
-    marginLeft: -2,
   },
   durationRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 12,
+    marginLeft: space.md,
   },
   durationText: {
-    fontSize: 13,
-    color: TEXT_GRAY,
-    fontWeight: '500',
-    marginLeft: 4,
+    fontSize: type.small,
+    color: colors.textSecondary,
+    fontWeight: weight.medium,
+    marginLeft: space.xs,
   },
   clockCircle: {
     width: 14,
     height: 14,
     borderRadius: 7,
     borderWidth: 1.3,
-    borderColor: TEXT_GRAY,
+    borderColor: colors.textSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -210,7 +178,7 @@ const JourneyCardStyles = StyleSheet.create({
     position: 'absolute',
     width: 1.3,
     height: 5,
-    backgroundColor: TEXT_GRAY,
+    backgroundColor: colors.textSecondary,
     top: 1.5,
     left: 6.3,
   },
@@ -218,7 +186,7 @@ const JourneyCardStyles = StyleSheet.create({
     position: 'absolute',
     width: 3.5,
     height: 1.3,
-    backgroundColor: TEXT_GRAY,
+    backgroundColor: colors.textSecondary,
     top: 6.3,
     left: 6.3,
   },
