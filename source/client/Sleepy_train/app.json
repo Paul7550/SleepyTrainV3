@@ -37,7 +37,8 @@
     },
     "owner": "phoenix7550s-organization",
     "plugins": [
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-background-task"
     ]
   }
 }

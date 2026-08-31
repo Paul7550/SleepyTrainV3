@@ -177,7 +177,9 @@ router.get('/refreshJourney', async (req, res) => {
             "name": lineName,
             "direction": leg.direction,
             "originName": leg.origin.name,
+            "originId": leg.origin.id,
             "destinationName": leg.destination.name,
+            "destinationId": leg.destination.id,
             "plannedDeparture": leg.plannedDeparture,
             "departureDelay": leg.departureDelay,
             "plannedDeparturePlatform": leg.departurePlatform,
@@ -190,7 +192,8 @@ router.get('/refreshJourney', async (req, res) => {
             resCon.legs[i].stops.push({
                 "plannedArrival": leg.stopovers[j].plannedArrival,
                 "arrivalDelay": leg.stopovers[j].arrivalDelay,
-                "name": leg.stopovers[j].stop.name
+                "name": leg.stopovers[j].stop.name,
+                "id": leg.stopovers[j].stop.id
             });
         }
     }
@@ -240,8 +243,6 @@ router.get('/savedConnection', async (req, res) => {
     }
     res.send(resCons)
 });
-<<<<<<< Updated upstream
-=======
 /**
  * @swagger
  * /api/checkForDelay:
@@ -293,6 +294,5 @@ router.get('/checkForDelay', async (req, res) => {
 
 
 })
->>>>>>> Stashed changes
 
 module.exports = router;

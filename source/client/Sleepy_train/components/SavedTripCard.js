@@ -15,7 +15,7 @@ export default function SavedTripCard({
     const Departure = new Date(plannedDeparture)
     const Arrival = new Date(plannedArrival)
     const loadConnectionDetails = async (key) => {
-        const url = `http://172.20.10.2:3000/api/refreshJourney/?refreshToken=${encodeURIComponent(key)}`;
+        const url = `${process.env.EXPO_PUBLIC_API_URL}/refreshJourney/?refreshToken=${encodeURIComponent(key)}`;
         const response = await fetch(url, {
             method: 'GET'
         });

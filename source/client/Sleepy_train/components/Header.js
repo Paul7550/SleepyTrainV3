@@ -15,11 +15,28 @@ export default function Header() {
         if (!state) return 'Search';
         return state.routes[state.index].name;
     });
-
-    const activeTab = activeRouteName === 'Saved' ? 'saved' : 'search';
+    const getActiveTab = (routeName) => {
+        switch (routeName) {
+            case 'Saved':
+                return 'saved';
+            case 'Alarm':
+                return 'alarm'; // Add new case
+            case 'Search':
+            default:
+                return 'search';
+        }
+    };
+    const activeTab = getActiveTab(activeRouteName);
 
     const handleSelectTab = (tab) => {
-        navigation.navigate(tab === 'saved' ? 'Saved' : 'Search');
+        const routeNames = {
+            saved: 'Saved',
+            alarm: 'Alarm',
+            search: 'Search',
+        };
+
+        const targetRoute = routeNames[tab] || 'Search';
+        navigation.navigate(targetRoute);
     };
 
     return (
@@ -32,6 +49,13 @@ export default function Header() {
                 <MaterialIcons name={"menu"} size={24} color={BORDER}></MaterialIcons>
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Sleepy Train</Text>
+            <TouchableOpacity
+                style={styles.alarm}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                onPress={()=>handleSelectTab('alarm')}
+            >
+                <MaterialIcons name={"alarm"} size={24} color={BORDER} ></MaterialIcons>
+            </TouchableOpacity>
             <View style={styles.menuButtonSpacer} />
 
             <NavMenu
@@ -54,10 +78,12 @@ const styles = StyleSheet.create({
         paddingTop: Platform.OS === 'android' ? 18 : 40,
         paddingBottom: 18,
     },
+    alarm:{
+        justifyContent:'space-between',
+    },
     menuButton: {
         width: 28,
         justifyContent: 'space-between',
-        height: 18,
     },
     menuButtonSpacer: {
         width: 28,

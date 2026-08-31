@@ -10,7 +10,7 @@ import {
 import * as Location from 'expo-location';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {MaterialIcons} from "@expo/vector-icons";
-const LOCATIONS_API_URL = 'http://172.20.10.2:3000/api/locations?location=';
+const LOCATIONS_API_URL = `${process.env.EXPO_PUBLIC_API_URL}/locations?location=`;
 function StationSearchModal({ visible, onClose, onSelect, initialValue }) {
     const [query, setQuery] = useState('');
     const [stations, setStations] = useState([]);

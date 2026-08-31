@@ -13,11 +13,7 @@ import JourneyCard from '../components/JourneyCard';
 import RouteInputCard from '../components/RouteInputCard';
 import {MaterialIcons} from '@expo/vector-icons';
 import {getLatestConnections, saveLatestConnections} from "../Saver";
-import Header from "../components/Header";
-import {StatusBar} from "expo-status-bar";
-import LatestConnections from "../components/LatestConnections";
 import ConnectionCard from "../components/LatestConnections";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function SearchScreen({navigation}) {
@@ -49,8 +45,9 @@ export default function SearchScreen({navigation}) {
     const handleSearch = async () => {
         if (fromValue != '' && toValue != '') {
             setLoading(true)
-            const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
-            try {
+            const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
+            try {        console.log(process.env.EXPO_BASE_URL)
+
                 const response = await fetch(url, {
                     method: 'GET'
                 });
@@ -70,7 +67,7 @@ export default function SearchScreen({navigation}) {
     };
     const loadLaterConnections = async () => {
         if (laterRef != '' && laterRef != null) {
-            const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&laterRef=${encodeURIComponent(laterRef)}`;
+            const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&laterRef=${encodeURIComponent(laterRef)}`;
             const response = await fetch(url, {
                 method: 'GET'
             });
@@ -84,7 +81,7 @@ export default function SearchScreen({navigation}) {
         }
     }
     const loadEarlierConnections = async () => {
-        const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&earlierRef=${encodeURIComponent(earlierRef)}`;
+        const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&earlierRef=${encodeURIComponent(earlierRef)}`;
         const response = await fetch(url, {
             method: 'GET'
         });
