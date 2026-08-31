@@ -55,7 +55,6 @@ export default function ActiveAlarmsScreen() {
     const fetchTrips = async () => {
         try {
             const savedAlarms = await getAlarm();
-            console.log(savedAlarms)
             const query = savedAlarms
                 .map(alarm => `refreshTokens=${encodeURIComponent(alarm.token)}&stopIds=${alarm.stopId}`)
                 .join('&');
@@ -64,7 +63,6 @@ export default function ActiveAlarmsScreen() {
             });
             if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
             const data = await response.json();
-            console.log(data);
             let alarm = [];
             for(let i = 0; i < savedAlarms.length; i++) {
                 alarm.push({
