@@ -28,15 +28,14 @@ function OptionPickerModal({ visible, title, options, selected, onSelect, onClos
 
                 <FlatList
                     data={options}
-                    keyExtractor={(item, index) => (typeof item === 'string' ? item : item.id || String(index))}
                     renderItem={({ item }) => {
-                        const label = typeof item === 'string' ? item : item.name;
+                        const label = typeof item.tripStation === 'string' ? item.tripStation : item.name;
                         const isSelected = label === selected;
                         return (
                             <TouchableOpacity
                                 style={styles.optionRow}
                                 onPress={() => {
-                                    onSelect(label);
+                                    onSelect(item);
                                     onClose();
                                 }}
                             >
@@ -134,9 +133,8 @@ export default function AlarmModal({
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(45);
     const [seconds, setSeconds] = useState(30);
-    const [station, setStation] = useState(initialStation || stations[0] || '');
+    const [station, setStation] = useState(initialStation || stations[stations.length-1] || '');
     const [sound, setSound] = useState(initialSound || sounds[0] || '');
-
     const [showStationPicker, setShowStationPicker] = useState(false);
     const [showSoundPicker, setShowSoundPicker] = useState(false);
 
@@ -180,7 +178,7 @@ export default function AlarmModal({
                         >
                             <Text style={styles.settingLabel}>Train Station</Text>
                             <View style={styles.settingValueRow}>
-                                <Text style={styles.settingValue}>{station}</Text>
+                                <Text style={styles.settingValue}>{station.tripStation}</Text>
                                 <Text style={styles.settingChevron}>›</Text>
                             </View>
                         </TouchableOpacity>

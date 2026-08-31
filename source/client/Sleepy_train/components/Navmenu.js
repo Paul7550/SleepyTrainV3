@@ -111,6 +111,16 @@ export default function NavMenu({ visible, onClose, activeTab, onSelectTab }) {
                         Saved
                     </Text>
                 </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.menuItem, activeTab === 'alarm' && styles.menuItemActive]}
+                    onPress={() => handleSelect('alarm')}
+                    activeOpacity={0.7}
+                >
+                    <MaterialIcons name={"alarm"} size={24} style={styles.menuItemIcon}/>
+                    <Text style={[styles.menuItemText, activeTab === 'alarm' && styles.menuItemTextActive]}>
+                        Alarm
+                    </Text>
+                </TouchableOpacity>
             </Animated.View>
         </Modal>
     );
