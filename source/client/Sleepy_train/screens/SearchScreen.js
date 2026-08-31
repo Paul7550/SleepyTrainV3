@@ -49,7 +49,7 @@ export default function SearchScreen({navigation}) {
     const handleSearch = async () => {
         if (fromValue != '' && toValue != '') {
             setLoading(true)
-            const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
+            const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
             try {
                 const response = await fetch(url, {
                     method: 'GET'
@@ -70,7 +70,7 @@ export default function SearchScreen({navigation}) {
     };
     const loadLaterConnections = async () => {
         if (laterRef != '' && laterRef != null) {
-            const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&laterRef=${encodeURIComponent(laterRef)}`;
+            const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&laterRef=${encodeURIComponent(laterRef)}`;
             const response = await fetch(url, {
                 method: 'GET'
             });
@@ -84,7 +84,7 @@ export default function SearchScreen({navigation}) {
         }
     }
     const loadEarlierConnections = async () => {
-        const url = `http://172.20.10.2:3000/api/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&earlierRef=${encodeURIComponent(earlierRef)}`;
+        const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&earlierRef=${encodeURIComponent(earlierRef)}`;
         const response = await fetch(url, {
             method: 'GET'
         });
