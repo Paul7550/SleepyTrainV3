@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {StatusBar} from "expo-status-bar";
 import Header from "../components/Header";
 import SavedTripsScreen from "../screens/SavedTripsScreen";
+import ActiveAlarmsScreen from "../screens/AlarmScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -17,6 +18,7 @@ export default function RootNavigator() {
             <Stack.Screen name="Search" component={SearchScreen} />
             <Stack.Screen name="TripDetail" component={TripDetailScreen} />
             <Stack.Screen name={"Saved"} component={SavedTripsScreen} />
+            <Stack.Screen name={"Alarm"} component={ActiveAlarmsScreen} />
         </Stack.Navigator>
         </View>
     );

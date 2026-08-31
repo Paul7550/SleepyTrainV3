@@ -25,7 +25,7 @@ export async function getLatestConnections() {
 export async function getJourneys(){
     try {
         const jsonValue = await AsyncStorage.getItem('journeys');
-        return jsonValue != null ? JSON.parse(jsonValue) : [];
+        return JSON.parse(jsonValue)
     } catch (e) {
         return []
     }
@@ -44,5 +44,48 @@ export async function saveJourneys(newToken){
         await AsyncStorage.setItem('journeys', JSON.stringify(updated));
     } catch (e) {
         console.error('Error adding token', e);
+    }
+}
+export async function saveAlarm(token,stopId,timeBevorStop,ringTone){
+    try{
+
+        let existing = await getAlarm();
+        const js = {
+            "token":token,
+            "stopId":stopId,
+            "timeBevorStop":timeBevorStop,
+            "ringTone":ringTone,
+            "active":true
+        }
+        const index = existing.findIndex(
+            item => item.token === js.token
+        );
+
+        if (index !== -1) {
+            existing[index] = js;
+        } else {
+            existing.push(js);
+        }
+        await AsyncStorage.setItem('alarm',JSON.stringify(existing))
+    }catch (e) {
+        console.error(e)
+    }
+}
+export async function getAlarm(){
+    try {
+        const alarm = await AsyncStorage.getItem('alarm')
+        return alarm != null ? JSON.parse(alarm) : [];
+
+    } catch (e) {
+        console.error(e)
+    }
+}
+export async function removeAlarm(token){
+    try{
+        let existing = await getAlarm();
+        existing = existing.filter(item => item.token !== token);
+        await AsyncStorage.setItem('alarm',JSON.stringify(existing))
+    }catch (e) {
+        console.error(e)
     }
 }

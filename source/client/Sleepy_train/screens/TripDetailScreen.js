@@ -1,9 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, ScrollView, Platform} from 'react-native';
 import {MaterialIcons} from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import AlarmModal from "../components/Alarmmodal";
-import {checkJourneys, saveJourneys} from "../Saver";
+import {checkJourneys, saveAlarm, saveJourneys} from "../Saver";
 
 
 function formatTime(isoString) {
@@ -27,7 +26,11 @@ function formatDuration(startIso, endIso) {
     return `${minutes}m`;
 }
 
-
+function setAlarm(config,token) {
+    const time = `${config.hours}:${config.minutes}:${config.seconds}`;
+    console.log(config)
+    saveAlarm(token,config.station.tripStationId,time,config.sound)
+}
 
 const RED = '#E8352B';
 const LINE_BLUE = '#2F5FC7';
@@ -291,11 +294,26 @@ export default function TripDetailScreen({route},onAlarm) {
             </View>
         );
     }
-    const tripStations = [
-        ...legs.map((leg) => leg.originName),
-        legs[legs.length - 1].destinationName,
-    ];
+    const result = [];
+    legs.forEach(leg => {
+        result.push({
+            tripStation: leg.originName,
+            tripStationId: leg.originId
+        });
 
+        leg.stops.forEach(stop => {
+            result.push({
+                tripStation: stop.name,
+                tripStationId: stop.id
+            });
+        });
+    });
+
+    const lastLeg = legs[legs.length - 1];
+    result.push({
+        tripStation: lastLeg.direction,
+        tripStationId: lastLeg.destinationId
+    });
     return (
         <View style={styles.screen}>
             <TripSummary legs={legs}/>
@@ -307,10 +325,8 @@ export default function TripDetailScreen({route},onAlarm) {
             <AlarmModal
                 visible={showAlarm}
                 onClose={() => setShowAlarm(false)}
-                onConfirm={(alarmConfig) => {
-                    onAlarm?.(alarmConfig);
-                }}
-                stations={tripStations}
+                onConfirm={(config) => {setAlarm(config,token)}}
+                stations={result}
                 initialStation={legs[legs.length - 1].destinationName}
             />
         </View>
