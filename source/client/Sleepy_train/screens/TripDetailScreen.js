@@ -28,7 +28,6 @@ function formatDuration(startIso, endIso) {
 
 function setAlarm(config,token) {
     const time = `${config.hours}:${config.minutes}:${config.seconds}`;
-    console.log(config)
     saveAlarm(token,config.station.tripStationId,time,config.sound)
 }
 

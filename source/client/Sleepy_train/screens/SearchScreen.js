@@ -13,11 +13,7 @@ import JourneyCard from '../components/JourneyCard';
 import RouteInputCard from '../components/RouteInputCard';
 import {MaterialIcons} from '@expo/vector-icons';
 import {getLatestConnections, saveLatestConnections} from "../Saver";
-import Header from "../components/Header";
-import {StatusBar} from "expo-status-bar";
-import LatestConnections from "../components/LatestConnections";
 import ConnectionCard from "../components/LatestConnections";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function SearchScreen({navigation}) {
@@ -50,7 +46,8 @@ export default function SearchScreen({navigation}) {
         if (fromValue != '' && toValue != '') {
             setLoading(true)
             const url = `${process.env.EXPO_PUBLIC_API_URL}/trainConnections/?departureStation=${origin}&arrivalStation=${destination}&departure=${date}`;
-            try {
+            try {        console.log(process.env.EXPO_BASE_URL)
+
                 const response = await fetch(url, {
                     method: 'GET'
                 });

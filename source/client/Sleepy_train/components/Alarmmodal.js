@@ -29,7 +29,7 @@ function OptionPickerModal({ visible, title, options, selected, onSelect, onClos
                 <FlatList
                     data={options}
                     renderItem={({ item }) => {
-                        const label = typeof item.tripStation === 'string' ? item.tripStation : item.name;
+                        const label = item.tripStation;
                         const isSelected = label === selected;
                         return (
                             <TouchableOpacity
@@ -133,7 +133,7 @@ export default function AlarmModal({
     const [hours, setHours] = useState(0);
     const [minutes, setMinutes] = useState(45);
     const [seconds, setSeconds] = useState(30);
-    const [station, setStation] = useState(initialStation || stations[stations.length-1] || '');
+    const [station, setStation] = useState(stations[stations.length-1] );
     const [sound, setSound] = useState(initialSound || sounds[0] || '');
     const [showStationPicker, setShowStationPicker] = useState(false);
     const [showSoundPicker, setShowSoundPicker] = useState(false);
